@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PEA-Repair</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--tx:#1a2150;--mu:#6b7399;--pri:#4f6ef7;--pu:#8b6cf0;--pk:#ef6fb8;--cy:#5bbcf7;--ok:#16a37a;--okb:rgba(22,163,122,.15);--bad:#e0475b;--badb:rgba(224,71,91,.14);--pub:rgba(139,108,240,.17);--gl:rgba(255,255,255,.58);--gb:rgba(255,255,255,.8);--nob:rgba(120,130,190,.14);--bd:rgba(120,130,190,.25);--sh:0 8px 30px rgba(80,100,200,.12);
+--bg:radial-gradient(at 12% 8%,#c6d6ff,transparent 45%),radial-gradient(at 88% 18%,#e2d2ff,transparent 45%),radial-gradient(at 50% 95%,#cdeaff,transparent 50%),#eaf0ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--tx:#e8ecff;--mu:#97a0cc;--pri:#7c93ff;--pu:#a58cff;--ok:#43d6a6;--okb:rgba(67,214,166,.16);--bad:#ff7b8d;--badb:rgba(255,123,141,.16);--gl:rgba(30,37,78,.6);--gb:rgba(255,255,255,.1);--nob:rgba(150,160,230,.14);--bd:rgba(150,160,230,.22);--sh:0 8px 30px rgba(0,0,0,.35);--bg:radial-gradient(at 12% 8%,#26307a,transparent 45%),radial-gradient(at 88% 18%,#3b2a7a,transparent 45%),radial-gradient(at 50% 95%,#17386a,transparent 50%),#0d1124}}
+:root[data-theme="dark"]{--tx:#e8ecff;--mu:#97a0cc;--pri:#7c93ff;--pu:#a58cff;--ok:#43d6a6;--okb:rgba(67,214,166,.16);--bad:#ff7b8d;--badb:rgba(255,123,141,.16);--gl:rgba(30,37,78,.6);--gb:rgba(255,255,255,.1);--nob:rgba(150,160,230,.14);--bd:rgba(150,160,230,.22);--sh:0 8px 30px rgba(0,0,0,.35);--bg:radial-gradient(at 12% 8%,#26307a,transparent 45%),radial-gradient(at 88% 18%,#3b2a7a,transparent 45%),radial-gradient(at 50% 95%,#17386a,transparent 50%),#0d1124}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg) fixed;color:var(--tx);font:15px/1.5 "Noto Sans Thai","Sarabun",system-ui,sans-serif;min-height:100vh}
+.shell{display:flex;gap:16px;max-width:1280px;margin:0 auto;padding:16px 16px calc(86px + env(safe-area-inset-bottom,0px))}
+.side{display:none;width:210px;flex-shrink:0;position:sticky;top:16px;align-self:flex-start;height:calc(100vh - 32px);flex-direction:column}
+main{flex:1;min-width:0}
+.glass,.card,.kc{background:var(--gl);border:1px solid var(--gb);border-radius:20px;box-shadow:var(--sh);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.card{padding:16px;margin-bottom:14px}
+h1{font-size:26px;line-height:1.25;margin:2px 0}h2{font-size:16px;margin:0 0 10px}
+.sub{color:var(--mu);font-size:13px}
+.logo{display:flex;gap:10px;align-items:center;margin-bottom:18px}.logo i{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--pri),var(--pu));display:flex;align-items:center;justify-content:center;font-style:normal;font-size:20px}
+.logo b{display:block;line-height:1.2}
+.nb{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-radius:12px;background:none;color:var(--mu);font:600 14px inherit;font-family:inherit;text-align:left;margin-bottom:4px}
+.nb.on{background:var(--pub);color:var(--pri)}
+.cta{margin-top:auto;padding:14px;border-radius:18px;background:linear-gradient(140deg,var(--pri),var(--pu));color:#fff}
+.cta button{margin-top:8px;border:0;border-radius:10px;padding:8px 12px;font:600 13px inherit;font-family:inherit;background:rgba(255,255,255,.25);color:#fff}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--gl);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--gb);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{flex:1;border:0;background:none;padding:10px 0 8px;font:12px inherit;font-family:inherit;color:var(--mu)}nav button span{display:block;font-size:20px}nav button.on{color:var(--pri);font-weight:700}
+.top{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.top input{flex:1;margin:0}
+input,select,textarea{width:100%;font:inherit;padding:11px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--gl);color:var(--tx);margin-top:4px}
+select.p{width:auto;margin:0;font-size:13px;padding:9px 12px}
+.bell{position:relative;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bell em{position:absolute;top:-4px;right:-4px;background:var(--pri);color:#fff;font:700 11px/1 inherit;padding:4px 6px;border-radius:9px;font-style:normal}
+.hd{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:flex-end;margin-bottom:14px}
+.kg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+.kc{padding:14px}.kc .ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px}
+.kc .t{font-size:12px;color:var(--mu)}.kc b{display:block;font-size:26px;line-height:1.2}
+.bd{display:inline-block;font-size:12px;font-weight:600;padding:1px 8px;border-radius:8px;margin-top:2px}
+.bd.g{background:var(--okb);color:var(--ok)}.bd.r{background:var(--badb);color:var(--bad)}.bd.n{background:var(--nob);color:var(--mu)}
+.g2{display:grid;gap:14px;grid-template-columns:1fr}
+.big{font-size:28px;font-weight:700}
+.leg{display:flex;justify-content:space-between;font-size:13px;margin:7px 0}.leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px}
+.br{display:grid;grid-template-columns:1fr 1.2fr 44px;gap:8px;align-items:center;font-size:13px;margin:9px 0}
+.br div{height:9px;border-radius:6px;background:var(--nob);overflow:hidden}.br div i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--pri),var(--pu))}
+.tr{display:grid;grid-template-columns:24px 1.4fr 1.6fr 76px;gap:6px;align-items:center;padding:9px 0;border-top:1px solid var(--bd);font-size:13px}
+.tr.h{border:0;color:var(--mu);font-size:12px}.tr.p{grid-template-columns:24px 1.6fr 60px 70px}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:9px;text-align:center}.pill.ok{background:var(--okb);color:var(--ok)}.pill.op{background:var(--pub);color:var(--pu)}.pill.ur{background:var(--badb);color:var(--bad)}
+.ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fn{display:flex;align-items:center;gap:8px}.fn svg{flex:1;max-width:210px}.fn ul{list-style:none;margin:0;padding:0;font-size:13px;flex:1}.fn li{margin:12px 0}.fn li b{display:block;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.v{border:1px solid var(--bd);border-radius:14px;padding:12px 6px;text-align:center;font:inherit;font-size:14px;background:var(--gl);color:var(--tx);min-height:50px}.v small{display:block;font-size:11px;color:var(--mu);font-weight:400}
+.v.on{background:var(--okb);border-color:var(--ok);color:var(--ok);font-weight:700}.grid2 .v.on{background:var(--badb);border-color:var(--bad);color:var(--bad)}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--pri),var(--pu));color:#fff;font:700 16px inherit;font-family:inherit;margin-top:12px}
+.btn:disabled{opacity:.45}.btn.s{width:auto;padding:7px 14px;font-size:13px;margin:0}.btn.g{background:var(--nob);color:var(--tx)}.btn.line{background:#06a755}
+label.l{font-size:13px;color:var(--mu);display:block;margin-top:10px}
+.note{background:var(--pub);color:var(--pu);border-radius:12px;padding:8px 12px;font-size:13px;margin-bottom:12px}
+.sheet{position:fixed;inset:0;background:rgba(10,14,40,.5);z-index:8;display:flex;align-items:flex-end;justify-content:center}
+.sheet>div{background:var(--gl);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));max-height:88%;overflow:auto;border:1px solid var(--gb)}
+@supports not (backdrop-filter:blur(1px)){.sheet>div,.glass,.card,.kc{background:var(--bg)}}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--nob);border-radius:12px;padding:12px;font:14px/1.6 inherit;font-family:inherit;margin:8px 0}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(94px + env(safe-area-inset-bottom,0px));background:var(--tx);color:var(--gb);padding:12px 16px;border-radius:14px;z-index:9;text-align:center}
+.toast{color:#fff;background:#1a2150}
+.row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+@media(min-width:900px){.side{display:flex}nav{display:none}.kg{grid-template-columns:repeat(4,1fr)}.g2.a{grid-template-columns:1.7fr 1fr}.g2.b{grid-template-columns:1fr 1fr}.shell{padding-bottom:24px}.toast{bottom:24px;left:50%;right:auto;transform:translateX(-50%)}}
+:root{--tx:#3b2350;--mu:#80698f;--pri:#8e5cb0;--pu:#b07cc6;--pk:#e58fc0;--pub:rgba(215,189,226,.55);--gl:rgba(255,255,255,.55);--gb:rgba(255,255,255,.8);--nob:rgba(142,92,176,.12);--bd:rgba(142,92,176,.25);--sh:0 8px 30px rgba(120,70,150,.15);--bg:radial-gradient(at 12% 8%,#D7BDE2,transparent 50%),radial-gradient(at 88% 18%,#ecd5f2,transparent 45%),radial-gradient(at 50% 95%,#e3cdee,transparent 50%),#f3e8f8}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--tx:#f3e8f8;--mu:#bba5cb;--pri:#c79be0;--pu:#D7BDE2;--pub:rgba(215,189,226,.2);--gl:rgba(62,38,84,.6);--gb:rgba(255,255,255,.1);--nob:rgba(215,189,226,.12);--bd:rgba(215,189,226,.22);--bg:radial-gradient(at 12% 8%,#5a3375,transparent 50%),radial-gradient(at 88% 18%,#6b3b86,transparent 45%),radial-gradient(at 50% 95%,#3a2c6b,transparent 50%),#1f1230}}
+:root[data-theme="dark"]{--tx:#f3e8f8;--mu:#bba5cb;--pri:#c79be0;--pu:#D7BDE2;--pub:rgba(215,189,226,.2);--gl:rgba(62,38,84,.6);--gb:rgba(255,255,255,.1);--nob:rgba(215,189,226,.12);--bd:rgba(215,189,226,.22);--bg:radial-gradient(at 12% 8%,#5a3375,transparent 50%),radial-gradient(at 88% 18%,#6b3b86,transparent 45%),radial-gradient(at 50% 95%,#3a2c6b,transparent 50%),#1f1230}
+.btn,.cta,.logo i{background:linear-gradient(135deg,#8e5cb0,#a86cc4)!important;color:#fff}.btn.g{background:var(--nob)!important;color:var(--tx)}.btn.line{background:#06a755!important}.toast{background:#3b2350}
+
+.seg{display:flex;gap:6px;flex-shrink:0}.seg button{width:46px;height:42px;border-radius:12px;border:1px solid var(--bd);background:var(--gl);color:var(--mu);font:700 17px inherit;font-family:inherit}
+.seg button.on.o{background:var(--ok);border-color:var(--ok);color:#fff}.seg button.on.x{background:var(--bad);border-color:var(--bad);color:#fff}.seg button.on.n{background:#8f95b2;border-color:#8f95b2;color:#fff}
+textarea{width:100%;font:inherit;padding:11px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--gl);color:var(--tx);margin-top:10px;resize:vertical}
+.v.na{background:var(--nob);color:var(--mu);border-style:dashed}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side glass" id="side" style="padding:16px"></aside>
+<main id="app"></main>
+</div>
+<nav id="nav"></nav>
+<script>
+var D=null,S={tab:'dash',P:30,br:'',plate:'',hist:false,err:'',toast:'',confirm:false,done:null,view:null,rep:newRep()},TD='',R=[],BY={},ISS=[],FLEET=[],OIL=[];
+var SAFE=/เบรก|ยาง|ล้อ|น็อต|น๊อต|เข็มขัด|ดับเพลิง|สลิง|ไฮดรอลิ|พวงมาลัย|บังคับเลี้ยว|กระบอก|เสาเครน|วิ้นซ์|ฮุก|งาเหล็ก/;
+function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function dk(ms){return new Date(ms).toLocaleDateString('en-CA',{timeZone:'Asia/Bangkok'})}
+function dshort(ms){return new Date(ms).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}
+function dfull(ms){var d=new Date(ms);return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.'}
+function nf(n){return Number(n).toLocaleString('th-TH')}
+function area(v,t0){var W=600,H=210,L=30,B=24,T=12,n=v.length,mx=Math.max(4,Math.max.apply(0,v)),X=function(i){return L+i*(W-L-10)/(n-1)},Y=function(a){return T+(H-T-B)*(1-a/mx)},p="M"+X(0)+" "+Y(v[0]);
+ for(var i=1;i<n;i++){var m=(X(i-1)+X(i))/2;p+=" C"+m+" "+Y(v[i-1])+","+m+" "+Y(v[i])+","+X(i)+" "+Y(v[i])}
+ var g="";for(var j=0;j<=4;j++){var a=Math.round(mx*j/4);g+="<line x1='"+L+"' x2='"+W+"' y1='"+Y(a)+"' y2='"+Y(a)+"' stroke='var(--bd)' stroke-dasharray='3 4'/><text x='0' y='"+(Y(a)+4)+"' font-size='11' fill='var(--mu)'>"+a+"</text>"}
+ var im=v.indexOf(Math.max.apply(0,v)),lb="";[0,Math.floor(n/2),n-1].forEach(function(i){lb+="<text x='"+X(i)+"' y='"+(H-4)+"' font-size='11' fill='var(--mu)' text-anchor='"+(i==0?"start":i==n-1?"end":"middle")+"'>"+dshort(t0+i*864e5)+"</text>"});
+ return"<svg viewBox='0 0 "+W+" "+H+"' width='100%'><defs><linearGradient id='ag' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='var(--pri)' stop-opacity='.4'/><stop offset='1' stop-color='var(--pri)' stop-opacity='0'/></linearGradient></defs>"+g+"<path d='"+p+" L"+X(n-1)+" "+Y(0)+" L"+X(0)+" "+Y(0)+" Z' fill='url(#ag)'/><path d='"+p+"' fill='none' stroke='var(--pri)' stroke-width='2.5'/><circle cx='"+X(im)+"' cy='"+Y(v[im])+"' r='5' fill='var(--card,#fff)' stroke='var(--pri)' stroke-width='3'/><text x='"+X(im)+"' y='"+(Y(v[im])-10)+"' font-size='12' font-weight='700' fill='var(--pri)' text-anchor='middle'>"+v[im]+"</text>"+lb+"</svg>"}
+function donut(sg,tot){var R=48,C=2*Math.PI*R,o=0,s="";sg.forEach(function(x){var l=tot?x[1]/tot*C:0;s+="<circle cx='70' cy='70' r='"+R+"' fill='none' stroke='"+x[2]+"' stroke-width='20' stroke-dasharray='"+l+" "+(C-l)+"' stroke-dashoffset='"+(-o)+"' transform='rotate(-90 70 70)'/>";o+=l});
+ return"<svg viewBox='0 0 140 140' width='150'><circle cx='70' cy='70' r='"+R+"' fill='none' stroke='var(--nob)' stroke-width='20'/>"+s+"<text x='70' y='68' text-anchor='middle' font-size='22' font-weight='700' fill='var(--tx)'>"+tot+"</text><text x='70' y='86' text-anchor='middle' font-size='11' fill='var(--mu)'>รายการ</text></svg>"}
+
+function load(){
+ if(window.google&&google.script&&google.script.run){google.script.run.withSuccessHandler(function(d){D=d;S.err='';build();render()}).withFailureHandler(function(e){S.err=(e&&e.message)||'โหลดข้อมูลไม่สำเร็จ';render()}).apiData()}
+ else{D=demo();build();render()}
+}
+function build(){
+ TD=dk(Date.now());R=D.rows;BY={};
+ R.forEach(function(r){(BY[r.pk]=BY[r.pk]||[]).push(r)});
+ var im={};
+ R.forEach(function(r){if(!r.ok)r.it.forEach(function(it){var k=r.pk+'|'+it.toLowerCase(),o=im[k];if(!o)o=im[k]={k:k,pk:r.pk,p:r.p,br:r.br,dp:r.dp,it:it,first:r.t,last:r.t,n:0,dt:''};o.n++;o.last=r.t;o.br=r.br;if(r.dt)o.dt=r.dt})});
+ ISS=Object.keys(im).map(function(k){var o=im[k],a=BY[o.pk],L=a[a.length-1],dn=D.done[k]||0,still=L.it.indexOf(o.it)>=0;
+  o.open=still&&!(dn>=o.last);o.why=o.open?'':(still?'บันทึกซ่อมเสร็จ':'ไม่พบในรายงานล่าสุด');o.days=Math.max(1,Math.round((Date.now()-o.first)/864e5));o.urg=SAFE.test(o.it);var sg=(D.st||{})[k]||{};o.stage=o.open?(sg.stage||''):'';o.sms=o.open?(sg.sms||0):0;o.snote=sg.note||'';o.dnote=sg.dnote||'';var nr=a.filter(function(r){return r.t>o.last&&r.it.indexOf(o.it)<0})[0];o.doneMs=o.open?0:(dn>=o.last?dn:(nr?nr.t:L.t));return o});
+ var cut=Date.now()-30*864e5,fm={};FLEET=[];OIL=[];
+ (D.veh||[]).forEach(function(v){var k=pkey(v.p);if(v.on)fm[k]={pk:k,p:v.p,br:v.br||'',ty:v.ty||'',code:v.code||'',desc:v.desc||'',note:v.note||''}});
+ Object.keys(BY).forEach(function(pk){var a=BY[pk],L=a[a.length-1];if(L.t>=cut||fm[pk]){var o=fm[pk]||(fm[pk]={pk:pk,p:L.p});o.br=o.br||L.br||'';o.ty=o.ty||tyOf(L.ty)}});
+ Object.keys(fm).forEach(function(k){FLEET.push(fm[k])});
+ Object.keys(BY).forEach(function(pk){var a=BY[pk],L=a[a.length-1];if(L.t<cut)return;
+  if(/ยก/.test(L.ty))return;var km=null,nx=null;for(var i=a.length-1;i>=0&&(km==null||nx==null);i--){if(km==null&&a[i].km)km=a[i].km;if(nx==null&&a[i].nx)nx=a[i].nx}
+  if(km&&nx)OIL.push({pk:pk,p:L.p,br:L.br,km:km,nx:nx,diff:nx-km})});
+ OIL.sort(function(a,b){return a.diff-b.diff});
+}
+function brs(){var s={};R.forEach(function(r){if(r.br)s[r.br]=1});return Object.keys(s).sort()}
+function pill(t,c){return"<span class='pill "+c+"'>"+t+"</span>"}
+function dash(){
+ var now=Date.now(),P=S.P,br=S.br,span=P*864e5;
+ var rows=R.filter(function(r){return(!br||r.br==br)&&(!P||now-r.t<=span)});
+ var fleet=FLEET.filter(function(f){return!br||f.br==br}),rep={};R.forEach(function(r){if(r.d==TD)rep[r.pk]=1});
+ var miss=fleet.filter(function(f){return!rep[f.pk]}),dn=fleet.length-miss.length,pc=fleet.length?Math.round(dn/fleet.length*100):0;
+ var open=ISS.filter(function(i){return i.open&&(!br||i.br==br)}),urg=open.filter(function(i){return i.urg});
+ var oil=OIL.filter(function(o){return!br||o.br==br}),ov=oil.filter(function(o){return o.diff<=0});
+ var fl=rows.filter(function(r){return r.fl&&r.fl.length}).length;
+ var N=P||30,d0=Date.now(),v=[],ix={};for(var i=0;i<N;i++){v.push(0);ix[dk(d0-(N-1-i)*864e5)]=i}
+ R.forEach(function(r){if(br&&r.br!=br)return;var k=ix[r.d];if(k!==undefined)v[k]++});
+ var okN=rows.filter(function(r){return r.ok}).length,bad=rows.length-okN,ic={};
+ rows.forEach(function(r){if(!r.ok)r.it.forEach(function(x){ic[x]=(ic[x]||0)+1})});
+ var ti=Object.keys(ic).sort(function(a,b){return ic[b]-ic[a]}).slice(0,7),mx=ic[ti[0]]||1;
+ var bs={};FLEET.forEach(function(f){var b=bs[f.br]=bs[f.br]||{n:0,d:0};b.n++;if(rep[f.pk])b.d++});
+ var bl=Object.keys(bs).sort(function(a,b){return bs[a].d/bs[a].n-bs[b].d/bs[b].n});
+ var h="<div class='hd'><div><div class='sub'>ข้อมูลจากฟอร์มรายงานรถ · อัปเดต "+new Date(D.now).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+" น.</div><h1>PEA-Repair</h1></div><div style='display:flex;gap:8px;flex-wrap:wrap'><select class='p glass' id='fb'><option value=''>ทุกแผนก</option>"+brs().map(function(b){return"<option"+(b==br?' selected':'')+">"+esc(b)+"</option>"}).join('')+"</select><select class='p glass' id='pd'>"+[[7,'7 วันล่าสุด'],[30,'30 วันล่าสุด'],[90,'90 วันล่าสุด'],[0,'ทั้งหมด']].map(function(o){return"<option value='"+o[0]+"'"+(o[0]==P?' selected':'')+">"+o[1]+"</option>"}).join('')+"</select><button class='btn s g' id='rf'>↻</button></div></div>";
+ var K=[['📋','รายงานวันนี้',dn+' / '+fleet.length,"<span class='bd "+(pc>=90?'g':'r')+"'>"+pc+"%</span>",'var(--pub)'],['🔧','ปัญหาค้างอยู่',open.length,"<span class='bd "+(urg.length?'r':'n')+"'>ด่วน "+urg.length+" · กำลังซ่อม "+open.filter(function(i){return i.stage}).length+"</span>",'var(--badb)'],['🛢','น้ำมันเครื่องเลยกำหนด',ov.length,"<span class='bd n'>จาก "+oil.length+" คัน</span>",'rgba(91,188,247,.2)'],['⚠','ข้อมูลผิดปกติ',fl,"<span class='bd n'>ไมล์/ส่งซ้ำ</span>",'var(--okb)']];
+ h+="<div class='kg'>"+K.map(function(k){return"<div class='kc'><div class='ic' style='background:"+k[4]+"'>"+k[0]+"</div><div class='t'>"+k[1]+"</div><b>"+k[2]+"</b>"+k[3]+"</div>"}).join('')+"</div>";
+ h+="<div class='g2 a'><div class='card'><div class='row'><h2>จำนวนรายงานรายวัน</h2><span class='sub'>"+N+" วัน</span></div><div class='big'>"+v.reduce(function(a,b){return a+b},0)+" <span class='sub'>รายงาน</span></div>"+area(v,d0-(N-1)*864e5)+"</div>";
+ h+="<div class='card'><h2>ผลรายงาน</h2><div style='text-align:center'>"+donut([['',okN,'#8e5cb0'],['',bad,'#e58fc0']],rows.length)+"</div>"+[['ปกติ',okN,'#8e5cb0'],['พบปัญหา',bad,'#e58fc0']].map(function(s){return"<div class='leg'><span><i style='background:"+s[2]+"'></i>"+s[0]+"</span><b>"+s[1]+"</b></div>"}).join('')+"</div></div>";
+ h+="<div class='g2 b'><div class='card'><h2>ปัญหาที่พบบ่อย</h2>"+(ti.map(function(x){return"<div class='br'><span class='ell'>"+esc(x)+"</span><div><i style='width:"+Math.round(ic[x]/mx*100)+"%'></i></div><b>"+ic[x]+"</b></div>"}).join('')||"<div class='sub'>ไม่พบปัญหาในช่วงนี้</div>")+"</div>";
+ h+="<div class='card'><div class='row'><h2>รายงานวันนี้ แยกแผนก</h2><span class='sub'>น้อยสุดก่อน</span></div>"+(bl.map(function(b){var p=Math.round(bs[b].d/bs[b].n*100);return"<div class='br'><span class='ell'>"+esc(b)+"</span><div><i style='width:"+p+"%'></i></div><b>"+bs[b].d+"/"+bs[b].n+"</b></div>"}).join('')||"<div class='sub'>ไม่มีข้อมูล</div>")+"</div></div>";
+ h+="<div class='card'><h2>ยังไม่ได้รายงานวันนี้ ("+miss.length+" คัน)</h2>"+(miss.length?"<div style='display:flex;flex-wrap:wrap;gap:6px'>"+miss.map(function(f){return"<button class='pill op' style='border:0;font-family:inherit' data-pl='"+esc(f.pk)+"'>"+esc(f.p)+"</button>"}).join('')+"</div><div class='sub' style='margin-top:8px'>นับจากรถที่เคยรายงานใน 30 วันล่าสุด</div>":"<div class='sub'>รายงานครบทุกคันแล้ว 🎉</div>")+"</div>";
+ h+="<div class='card'><div class='row'><h2>น้ำมันเครื่อง ใกล้/เลยกำหนด</h2><span class='sub'>ไม่รวมรถยก</span></div>"+(oil.slice(0,8).map(function(o){return"<div class='tr' style='grid-template-columns:1.4fr 1fr 80px'><span class='ell'><b>"+esc(o.p)+"</b><div class='sub'>"+esc(o.br)+"</div></span><span class='sub'>ไมล์ "+nf(o.km)+" / ครบ "+nf(o.nx)+"</span>"+pill(o.diff<=0?'เลย '+nf(-o.diff):'อีก '+nf(o.diff),o.diff<=0?'ur':'op')+"</div>"}).join('')||"<div class='sub'>ไม่มีข้อมูล</div>")+"</div>";
+ return h}
+function issues(){
+ var br=S.br,list=ISS.filter(function(i){return(!br||i.br==br)&&(S.hist?!i.open:i.open)});
+ list.sort(function(a,b){return S.hist?b.last-a.last:(b.urg-a.urg||b.days-a.days)});
+ var h="<h1>ปัญหาค้างอยู่</h1><div class='sub'>รวมรายงานซ้ำของปัญหาเดิมเป็นรายการเดียว ถ้ารายงานล่าสุดของรถคันนั้นไม่มีปัญหานี้แล้ว จะถือว่าปิด</div><div style='display:flex;gap:8px;margin:12px 0;flex-wrap:wrap'><button class='btn s"+(S.hist?' g':'')+"' data-h='0'>ค้างอยู่ ("+ISS.filter(function(i){return i.open&&(!br||i.br==br)}).length+")</button><button class='btn s"+(S.hist?'':' g')+"' data-h='1'>ปิดแล้ว</button><select class='p glass' id='fb'><option value=''>ทุกแผนก</option>"+brs().map(function(b){return"<option"+(b==br?' selected':'')+">"+esc(b)+"</option>"}).join('')+"</select></div>";
+ h+=list.slice(0,80).map(function(o){var ix=ISS.indexOf(o);return"<div class='card'><div class='row'><b>"+esc(o.p)+"</b><span>"+(o.urg?pill('ด่วน','ur')+' ':'')+pill(o.open?'ค้าง '+o.days+' วัน':'ปิดแล้ว',o.open?'op':'ok')+"</span></div><div>"+esc(o.it)+"</div>"+(o.dt&&o.dt!=o.it?"<div class='sub'>"+esc(o.dt)+"</div>":'')+"<div class='sub'>"+esc(o.br)+(o.dp&&o.dp!=o.br?' · '+esc(o.dp):'')+" · แจ้งครั้งแรก "+dshort(o.first)+" · ล่าสุด "+dshort(o.last)+" · "+o.n+" รายงาน"+(o.open?'':' · '+o.why)+"</div>"+(o.open?"<div style='margin-top:8px'><button class='btn s' data-di='"+ix+"'>ซ่อมเสร็จ</button></div>":'')+"</div>"}).join('')||"<div class='card sub'>ไม่มีรายการ</div>";
+ return h}
+function plate(){
+ var keys=Object.keys(BY).sort(function(a,b){return BY[a][0].p<BY[b][0].p?-1:1}),pk=S.plate||keys[0],a=(BY[pk]||[]).slice().reverse(),L=a[0];
+ var h="<h1>ประวัติรายคัน</h1><select id='ps' style='margin:10px 0'>"+keys.map(function(k){var r=BY[k][BY[k].length-1];return"<option value='"+esc(k)+"'"+(k==pk?' selected':'')+">"+esc(r.p)+" · "+esc(r.br)+"</option>"}).join('')+"</select>";
+ if(!L)return h+"<div class='card sub'>ไม่มีข้อมูล</div>";
+ var o=OIL.filter(function(x){return x.pk==pk})[0],dots='',d0=Date.now();
+ for(var k=13;k>=0;k--){var day=dk(d0-k*864e5),rs=a.filter(function(r){return r.d==day});dots+="<i style='flex:1;height:24px;border-radius:6px;background:"+(!rs.length?'var(--nob)':rs.some(function(r){return!r.ok})?'#e58fc0':'#8e5cb0')+"' title='"+day+"'></i>"}
+ h+="<div class='card'><b>"+esc(L.p)+"</b> "+pill(esc(L.ty||'-'),'op')+((FLEET.filter(function(q){return q.pk==pk})[0]||{}).code?"<div class='sub'>รหัส "+esc(FLEET.filter(function(q){return q.pk==pk})[0].code)+' · '+esc(FLEET.filter(function(q){return q.pk==pk})[0].desc||'')+"</div>":'')+"<div class='sub'>"+esc(L.br)+(L.dp&&L.dp!=L.br?' · '+esc(L.dp):'')+"</div><div style='margin-top:6px'>ไมล์ล่าสุด <b>"+(o?nf(o.km):(L.km?nf(L.km):'-'))+"</b>"+(o?" · เปลี่ยนน้ำมันเครื่องครั้งต่อไป <b>"+nf(o.nx)+"</b> "+pill(o.diff<=0?'เลย '+nf(-o.diff):'อีก '+nf(o.diff),o.diff<=0?'ur':'ok'):'')+"</div><div class='sub' style='margin-top:10px'>14 วันล่าสุด (ม่วง = ปกติ, ชมพู = พบปัญหา, เทา = ไม่รายงาน)</div><div style='display:flex;gap:4px;margin-top:4px'>"+dots+"</div></div>";
+ h+=a.slice(0,60).map(function(r){return"<div class='card'><div class='row'><b>"+dfull(r.t)+"</b>"+pill(r.ok?'ปกติ':'พบปัญหา',r.ok?'ok':'ur')+"</div>"+(r.ok?'':"<div>"+r.it.map(esc).join(', ')+"</div>"+(r.dt?"<div class='sub'>"+esc(r.dt)+"</div>":''))+"<div class='sub'>"+(r.km?'ไมล์ '+nf(r.km)+' · ':'')+(r.oil?'เปลี่ยนน้ำมันเครื่องที่ '+nf(r.oil)+' · ':'')+(r.by?'ผู้รายงาน '+esc(r.by):'')+' · '+(r.src=='web'?'เว็บ · '+(KL[r.kind]||'รายงาน'):'ฟอร์ม')+"</div>"+ckSum(r)+evid(r)+(r.fl&&r.fl.length?r.fl.map(function(f){return"<span class='bd r'>⚠ "+f+"</span> "}).join(''):'')+"</div>"}).join('');
+ return h}
+var TABS=[['dash','📊','แดชบอร์ด'],['pct','📈','เปอร์เซ็นต์'],['chk','✅','ตรวจรถ'],['fix','🔧','รอซ่อม'],['plt','🕘','ประวัติ']];
+function render(){
+ var h=S.err?"<div class='card'><b>โหลดข้อมูลไม่สำเร็จ</b><div class='sub'>"+esc(S.err)+"</div><button class='btn' id='rf'>ลองใหม่</button></div>":!D?"<div class='sub' style='padding:30px;text-align:center'>กำลังโหลดข้อมูล...</div>":(S.tab=='dash'?dash():S.tab=='pct'?pctView():S.tab=='rep'?repView():S.tab=='chk'?chkView():S.tab=='fix'?fixView():histView());
+ var y=window.scrollY;document.getElementById('app').innerHTML=h+sheets()+(S.toast?"<div class='toast'>"+S.toast+"</div>":'');window.scrollTo(0,y);
+ document.getElementById('nav').innerHTML=TABS.map(function(x){return"<button class='"+(S.tab==x[0]?'on':'')+"' data-t='"+x[0]+"'><span>"+x[1]+"</span>"+x[2]+"</button>"}).join('');
+ document.getElementById('side').innerHTML="<div class='logo'><i>🚗</i><div><b>PEA-Repair</b><span class='sub'>รายงานและซ่อมรถ กฟจ.นธ.</span></div></div>"+TABS.map(function(x){return"<button class='nb"+(S.tab==x[0]?' on':'')+"' data-t='"+x[0]+"'>"+x[1]+' '+x[2]+"</button>"}).join('')+"<div class='sub' style='margin-top:auto'>ข้อมูลจากแท็บ: "+esc(D?D.sheet:'')+"</div>";
+}
+function toast(m){S.toast=m;render();setTimeout(function(){S.toast='';render()},2400)}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset;
+ if(d.t){S.tab=d.t;render();window.scrollTo(0,0)}
+ else if(d.pl){S.plate=d.pl;S.hm='car';S.tab='plt';render();window.scrollTo(0,0)}
+ else if(d.h!==undefined){S.hist=d.h=='1';render()}
+ else if(d.di!==undefined){var o=ISS[+d.di];b.disabled=true;
+  var fin=function(){D.done[o.k]=Date.now();build();render();toast('บันทึกซ่อมเสร็จแล้ว')};
+  if(window.google&&google.script&&google.script.run)google.script.run.withSuccessHandler(fin).withFailureHandler(function(){b.disabled=false;toast('บันทึกไม่สำเร็จ ลองใหม่')}).apiDone(o.pk,o.p,o.it);else fin()}
+ else if(b.id=='rf'){load()}
+});
+document.addEventListener('change',function(e){var t=e.target;
+ if(t.id=='pd'){S.P=+t.value;render()}else if(t.id=='fb'){S.br=t.value;render()}else if(t.id=='ps'){S.plate=t.value;render()}});
+
+/* ================= หน้า "รายงานรถ" (ใช้ควบคู่กับฟอร์มเดิม) ================= */
+function pkey(p){var t=String(p||'').trim().split(/\s+/);if(t.length>1&&!/\d/.test(t[t.length-1]))t.pop();return t.join('').replace(/[.()]/g,'').toLowerCase()}
+var VEH=['เข็มขัดนิรภัย','ไฟส่องสว่าง (สูง-ต่ำ) หน้า-หลัง','ไฟเบรก','ไฟสัญญาณ (ไฟวับวาบ,เลี้ยวซ้าย-ขวา,ถอยหลัง)','กระจกหน้ารถ','กระจกมองข้าง/หลัง','ที่ปัดน้ำฝน','น้ำฉีดกระจก','ระดับน้ำมันเชื้อเพลิง','ระดับน้ำมันหล่อลื่นเครื่องยนต์','การทำงานของแตร','ระบบเบรก (เบรกมือ/เบรกเท้า)','เครื่องปรับอากาศ','สภาพยาง กระทะล้อ และน๊อตยึดล้อ','อุปกรณ์ดับเพลิง','แบตเตอรี่ (ขั้ว, น้ำกลั่น)','ทำความสะอาดด้านในและด้านนอก','ความเสียหายภายใน','ความเสียหายภายนอก'];
+var FORK=['ระดับน้ำมันหล่อลื่นเครื่องยนต์','ระดับน้ำยาหล่อเย็นในหม้อน้ำสำรอง','ระดับน้ำมันไฮดรอลิกส์','ระดับน้ำมันหล่อลื่นห้องเกียร์','ระดับน้ำกลั่นแบตเตอรี่','สภาพยาง กระทะล้อ และน๊อตยึดล้อ','สภาพงาเหล็กยกของ แผงงา และการหลุดหลวม','ระดับน้ำมันเชื้อเพลิง','การทำงานของเกจวัดบนแผงหน้าปัทม์','การทำงานของระบบไฮดรอลิกส์และชุดงายก','การทำงานของระบบบังคับเลี้ยวและระบบเบรก','การทำงานของเครื่องยนต์และห้องเกียร์','ระบบไฟส่องสว่าง','การทำงานของแตร','ไฟสัญญาณ (ไฟวับวาบ,เลี้ยวซ้าย-ขวา,ถอยหลัง)','สัญญาณเสียงถอยหลัง','ตรวจสอบความตึงหย่อนของโซ่ขับเคลื่อนแผงงา'];
+var CRN=['ระบบคอนโทรล (รั่วต่างๆ)','เกียร์ฝาก (รั่ว, เสียงดัง)','ปั๊มไฮดรอลิค (รั่ว, เสียงดัง)','สายไฮดรอลิค (บวม, แตก)','น้ำมันไฮดรอลิค (สภาพ, ระดับ)','สาย PTO, สายคันเร่ง (ขาด, ฝืด)','กระบอกหมุนเครน (การหมุน, บู๊ช)','เสาเครน (ลูกปืน, แอนตัว, การหมุน)','กระบอกขาข้างหน้า ซ้าย-ขวา','กระบอกขาข้างหลัง ซ้าย-ขวา','กระบอกยกบูม ใน-นอก','กระบอกยืดหด ใน-นอก','แผ่นรองเลื่อน (หาย, แตก, สึก)','ชุดวิ้นซ์-เบรควิ้นซ์ (รั่ว, เสียงดัง)','ลวดสลิง (แตก, การม้วนเก็บ)','รอก (ร่องสึก, แตก, เสียงดัง)','หัวเจาะ (รั่วชีล, รั่วสาย, เสียงดัง)','ฮุกมีตัวล๊อกสลิงกันหลุด','ไฟสัญญาณ (ไฟวับวาบ)','เกจชั่วโมง'];
+/* รายการตรวจตามแบบฟอร์ม กฟภ. FM1-SOH3-S04-6103 (ยานพาหนะ) / 6104 (รถยก) / 6105 (เครนไฮดรอลิค กระเช้า) */
+var GRP={'รถทั่วไป':[['ยานพาหนะ (FM1-SOH3-S04-6103)',VEH]],'รถเครน':[['ยานพาหนะ (FM1-SOH3-S04-6103)',VEH],['เครนไฮดรอลิค / กระเช้า (FM1-SOH3-S04-6105)',CRN]],'รถยก':[['รถยก (FM1-SOH3-S04-6104)',FORK]]};
+var DEF={};['รถทั่วไป','รถเครน','รถยก'].forEach(function(k){DEF[k]=[].concat.apply([],GRP[k].map(function(g){return g[1]}))});
+function newRep(){var by='';try{by=localStorage.getItem('pr_by')||''}catch(e){}return{br:'',dp:'',p:'',ty:'',km:'',nx:'',res:'bad',kind:'repair',it:{},other:'',dt:'',by:by,photo:'',t0:0}}
+function tyOf(t){return /ยก/.test(t||'')?'รถยก':/เครน/.test(t||'')?'รถเครน':'รถทั่วไป'}
+function allBr(){var seen={},o=[],add=function(b){if(b&&!seen[b]){seen[b]=1;o.push(b)}};((D&&D.veh)||[]).forEach(function(v){add(v.br)});FLEET.forEach(function(x){add(x.br)});brs().forEach(add);return o}
+function itemsFor(ty){return(DEF[ty]||DEF['รถทั่วไป']).slice()}
+function picked(){var f=S.rep,a=Object.keys(f.it).filter(function(k){return f.it[k]});if(f.other.trim())a.push(f.other.trim());return a}
+function repValid(){var f=S.rep;return!!(f.br&&f.p.trim()&&f.ty&&f.by.trim()&&f.res&&(f.res=='ok'||picked().length||f.dt.trim()))}
+function gps(){return new Promise(function(res){try{navigator.geolocation.getCurrentPosition(function(p){res({lat:+p.coords.latitude.toFixed(5),lng:+p.coords.longitude.toFixed(5)})},function(){res(null)},{timeout:6000,maximumAge:60000})}catch(e){res(null)}})}
+function lineText(p,t){return (p.kind=='repair'?'🔧 แจ้งซ่อมรถ':p.kind=='inspect'?'🔍 ตรวจรถพบปัญหา':'🔧 พบปัญหารถ')+'\nทะเบียน: '+p.p+'\nแผนก: '+p.br+(p.dp&&p.dp!=p.br?' ('+p.dp+')':'')+'\nปัญหา: '+p.it.join(', ')+(p.dt?'\nรายละเอียด: '+p.dt:'')+'\nผู้รายงาน: '+p.by+'\nวันที่: '+dfull(t)}
+function hm(ms){return new Date(ms).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}
+function sfx(it){return SAFE.test(it)?"<small>ความปลอดภัย</small>":''}
+function plateGrid(f,att,td){
+ var fl=FLEET.slice().sort(function(a,b){return a.p<b.p?-1:a.p>b.p?1:0});
+ return"<div class='grid'>"+fl.map(function(x){var t=td[x.pk];return"<button class='v"+(x.p==f.p?' on':'')+"' data-"+att+"='"+esc(x.pk)+"'>"+(t?'✅ ':'')+esc(x.p)+(t?"<small>ตรวจแล้ว "+hm(t.t)+"</small>":'')+"</button>"}).join('')+"</div>"}
+function brSection(f,att,n){
+ return"<h2 style='margin-top:16px'>"+n+". แผนก</h2><div class='sub' style='margin-bottom:8px'>"+(f.br?'เลือกให้อัตโนมัติตามทะเบียน แก้ไขได้':'ถ้าจำหน่วยงานไม่ได้ ให้เลือกทะเบียนด้านบน ระบบจะเลือกให้เอง')+"</div><div class='grid'>"+allBr().map(function(b){return"<button class='v"+(b==f.br?' on':'')+"' data-"+att+"='"+esc(b)+"'>"+(b==f.br?'✓ ':'')+esc(b)+"</button>"}).join('')+"</div>"}
+function repView(){
+ var f=S.rep,td={};R.forEach(function(r){if(r.d==TD)td[r.pk]=r});
+ var dps={};R.forEach(function(r){if(r.br==f.br&&r.dp)dps[r.dp]=1});
+ var rp=f.kind=='repair';
+ var h="<button class='btn s g' data-t='fix'>← รอซ่อม</button><h1 style='margin-top:10px'>"+(rp?'แจ้งซ่อม':'รายงานรถ')+"</h1><div style='display:flex;gap:8px;margin:8px 0'><button class='btn s"+(rp?' g':'')+"' data-rk='report'>รายงานรถ</button><button class='btn s"+(rp?'':' g')+"' data-rk='repair'>แจ้งซ่อม</button></div><div class='sub'>"+(rp?'เลือกทะเบียน แล้วแตะรายการที่ต้องซ่อม ระบบบันทึกวันเวลาและแจ้ง LINE ให้':'ไม่พบปัญหาให้กด “ปกติ” พบปัญหาให้เลือกรายการ ใช้ควบคู่กับฟอร์มเดิมได้')+"</div>";
+ h+="<h2 style='margin-top:16px'>1. ทะเบียนรถ</h2>"+plateGrid(f,'rp',td)+"<input id='rpo' placeholder='หรือพิมพ์ทะเบียนเอง เช่น 80-1234 นธ.' value='"+esc(FLEET.some(function(x){return x.p==f.p})?'':f.p)+"' style='margin-top:10px'>";
+ var cur=f.p&&BY[pkey(f.p)],dupe=cur&&cur[cur.length-1].d==TD?cur[cur.length-1]:null;
+ if(dupe)h+="<div class='note' style='margin-top:10px'>คันนี้รายงานแล้ววันนี้ เวลา "+hm(dupe.t)+" น. (จาก"+(dupe.src=='web'?'เว็บ':'ฟอร์ม')+") ส่งซ้ำได้ถ้าสภาพเปลี่ยน</div>";
+ h+=brSection(f,'rb',2);
+ if(Object.keys(dps).length)h+="<select id='rdp' style='margin-top:10px'><option value=''>แผนก (ไม่บังคับ)</option>"+Object.keys(dps).sort().map(function(d){return"<option"+(d==f.dp?' selected':'')+">"+esc(d)+"</option>"}).join('')+"</select>";
+ h+="<h2 style='margin-top:16px'>3. ประเภทรถ</h2><div class='grid'>"+['รถทั่วไป','รถเครน','รถยก'].map(function(t){return"<button class='v"+(t==f.ty?' on':'')+"' data-rt='"+t+"'>"+(t==f.ty?'✓ ':'')+t+"</button>"}).join('')+"</div>";
+ h+="<div class='card' style='margin-top:12px'><label class='l' style='margin:0'>เลขไมล์ปัจจุบัน"+(f.ty=='รถยก'?' / ชั่วโมงทำงาน':'')+" (ไม่บังคับ)</label><input id='rk' inputmode='numeric' value='"+esc(f.km)+"' placeholder='เช่น 84520'><label class='l'>เลขไมล์เปลี่ยนถ่ายน้ำมันเครื่องครั้งต่อไป (ไม่บังคับ)</label><input id='rn' inputmode='numeric' value='"+esc(f.nx)+"' placeholder='เช่น 90000'></div>";
+ if(!rp)h+="<h2>4. ผลตรวจ</h2><div class='grid2'><button class='v' data-rs='ok' style='"+(f.res=='ok'?'background:var(--okb);border-color:var(--ok);color:var(--ok);font-weight:700':'')+"'>"+(f.res=='ok'?'✓ ':'')+"ไม่พบปัญหา (ปกติ)</button><button class='v"+(f.res=='bad'?' on':'')+"' data-rs='bad'>"+(f.res=='bad'?'✓ ':'')+"พบปัญหา</button></div>";
+ else h+="<h2>4. รายการที่ต้องซ่อม</h2>";
+ if(f.res=='bad'){var L=itemsFor(f.ty||'รถทั่วไป');
+  h+="<div class='sub' style='margin:12px 0 6px'>เลือกรายการที่พบปัญหา (เลือกได้หลายข้อ)</div><div class='grid2'>"+L.map(function(x,i){var on=f.it[x];return"<button class='v"+(on?' on':'')+"' data-ri='"+i+"'>"+(on?'✓ ':'')+esc(x)+sfx(x)+"</button>"}).join('')+"</div><input id='ro' value='"+esc(f.other)+"' placeholder='อื่นๆ (พิมพ์เอง)' style='margin-top:10px'><input id='rd' value='"+esc(f.dt)+"' placeholder='รายละเอียดข้อบกพร่อง' style='margin-top:10px'>"}
+ h+="<h2 style='margin-top:16px'>5. ผู้รายงาน</h2><div class='card'><input id='rb' value='"+esc(f.by)+"' placeholder='รหัสพนักงาน หรือชื่อ-สกุล' style='margin:0'><label class='l'>รูปถ่าย (ไม่บังคับ)</label>"+(f.photo?"<img alt='' src='"+f.photo+"' style='width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-top:6px'>":'')+"<label class='btn s g' style='display:inline-block;margin-top:8px'>"+(f.photo?'ถ่ายใหม่':'📷 ถ่ายรูป')+"<input id='rph' type='file' accept='image/*' capture='environment' style='display:none'></label><div class='sub' style='margin-top:8px'>📍 ระบบจะขอพิกัดตอนกดยืนยัน (ไม่บังคับ)</div></div>";
+ h+="<button class='btn' id='rgo'"+(repValid()?'':' disabled')+">"+(!f.br&&f.p.trim()?'เลือกหน่วยงานก่อน':'ตรวจสอบและยืนยัน')+"</button>";
+ return h}
+function sheets(){var xs=xSheets();if(xs)return xs;
+ if(S.done){var d=S.done,p=d.p;return"<div class='sheet'><div><h1>บันทึกแล้ว ✓</h1><div class='sub'>"+esc(p.p)+" · "+(p.ok?'ไม่พบปัญหา':'พบปัญหา '+p.it.length+' รายการ')+" · "+dfull(d.t)+"</div>"+(p.ok?'':"<div class='sub' style='margin-top:10px'>ระบบแจ้ง LINE อัตโนมัติถ้าตั้งค่าไว้ หรือส่งเองได้</div><pre>"+esc(lineText(p,d.t))+"</pre><a class='btn line' style='display:block;text-align:center;text-decoration:none' target='_blank' rel='noopener' href='https://line.me/R/msg/text/?"+encodeURIComponent(lineText(p,d.t))+"'>ส่งเข้า LINE</a>")+"<button class='btn g' id='rfin'>เสร็จสิ้น</button></div></div>"}
+ if(S.confirm){var f=S.rep,it=picked();return"<div class='sheet'><div><h1>ยืนยันการรายงาน</h1><div class='card' style='margin-top:12px'><div class='sub'>แผนก/ทะเบียน</div><b>"+esc(f.br)+" · "+esc(f.p)+"</b><div class='sub' style='margin-top:8px'>ประเภท / ไมล์</div>"+esc(f.ty)+(f.km?' · '+nf(f.km):'')+"<div class='sub' style='margin-top:8px'>ผลตรวจ</div>"+(f.res=='ok'?'ไม่พบปัญหา (ปกติ)':it.map(function(x){return'• '+esc(x)}).join('<br>')+(f.dt?"<br><span class='sub'>"+esc(f.dt)+"</span>":''))+"<div class='sub' style='margin-top:8px'>ผู้รายงาน</div>"+esc(f.by)+"<div class='sub' style='margin-top:8px'>วันที่และเวลา</div>"+dfull(Date.now())+"</div><button class='btn' id='rok'>ยืนยันบันทึก</button><button class='btn g' id='rback'>กลับไปแก้ไข</button></div></div>"}
+ if(S.view)return"<div class='sheet'><div style='text-align:center'>"+(S.view.data?"<img alt='' src='"+S.view.data+"' style='max-width:100%;border-radius:14px'>":S.view.data===''?"<div class='sub'>ไม่พบรูป</div>":"<div class='sub'>กำลังโหลดรูป...</div>")+"<button class='btn g' id='phx'>ปิด</button></div></div>";
+ return''}
+function evid(r){var h='';if(r.photo)h+="<button class='bd n' style='border:0;font-family:inherit' data-ph='"+esc(r.id)+"'>📷 ดูรูป</button> ";if(r.lat)h+="<a class='bd n' style='text-decoration:none' target='_blank' rel='noopener' href='https://www.google.com/maps?q="+r.lat+","+r.lng+"'>📍 พิกัด</a> ";return h?"<div style='margin-top:4px'>"+h+"</div>":''}
+function openPh(id){S.view={id:id,data:null};render();if(!(window.google&&google.script&&google.script.run)){S.view.data='';render();return}
+ google.script.run.withSuccessHandler(function(o){if(S.view){S.view.data=(o&&o.data)||'';render()}}).withFailureHandler(function(){if(S.view){S.view.data='';render()}}).apiGetPhoto(id)}
+function photoIn(f){var fr=new FileReader();fr.onload=function(){var img=new Image();img.onload=function(){var s=Math.min(1,640/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);S.rep.photo=c.toDataURL('image/jpeg',0.6);render()};img.src=fr.result};fr.readAsDataURL(f)}
+function demoAdd(p,t){D.rows.push({t:t,d:dk(t),br:p.br,dp:p.dp,p:p.p,pk:pkey(p.p),ty:p.ty,km:+p.km||null,nx:+p.nx||null,ok:p.ok,it:p.it,dt:p.dt,by:p.by,fl:[],src:'web',kind:p.kind||'report',ck:p.ck||null,oil:+p.oil||null});build()}
+async function submitRep(b){
+ b.disabled=true;b.textContent='กำลังบันทึก...';
+ var f=S.rep,g=await gps(),isG=!!(window.google&&google.script&&google.script.run);
+ var p={kind:f.kind||'report',p:f.p.trim(),br:f.br,dp:f.dp,ty:f.ty,km:f.km,nx:f.nx,ok:f.res=='ok',it:f.res=='ok'?[]:picked(),dt:f.res=='ok'?'':f.dt.trim(),by:f.by.trim(),photoData:f.photo||'',lat:g?g.lat:null,lng:g?g.lng:null,durMs:f.t0?Date.now()-f.t0:0};
+ try{localStorage.setItem('pr_by',p.by)}catch(e){}
+ var fin=function(res){var by=f.by,br=f.br;S.done={p:p,t:(res&&res.t)||Date.now()};S.confirm=false;S.rep=newRep();S.rep.br=br;S.rep.by=by;S.rep.kind=f.kind||'report';if(S.rep.kind=='repair')S.rep.res='bad';if(!isG)demoAdd(p,S.done.t);render();if(isG)load()};
+ if(isG)google.script.run.withSuccessHandler(fin).withFailureHandler(function(e){b.disabled=false;b.textContent='ยืนยันบันทึก';toast((e&&e.message)||'บันทึกไม่สำเร็จ ลองใหม่')}).apiSubmit(p);else fin({t:Date.now()})
+}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset,f=S.rep;
+ if(d.rb!==undefined){f.br=d.rb;f.dp='';render()}
+ else if(d.rp!==undefined){var x=FLEET.filter(function(q){return q.pk==d.rp})[0],o2=lastOf(d.rp),a=o2.a,L=o2.L,nx=null;for(var i=a.length-1;i>=0&&!nx;i--)if(a[i].nx)nx=a[i].nx;f.p=x.p;f.br=x.br||f.br;f.ty=tyOf(L.ty);f.dp=L.dp||'';f.nx=nx?String(nx):'';f.km='';f.t0=Date.now();render()}
+ else if(d.rt!==undefined){f.ty=d.rt;render()}
+ else if(d.rs!==undefined){f.res=d.rs;if(!f.t0)f.t0=Date.now();render()}
+ else if(d.ri!==undefined){var L2=itemsFor(f.ty||'รถทั่วไป'),k=L2[+d.ri];f.it[k]=!f.it[k];render()}
+ else if(b.id=='rgo'){S.confirm=true;render()}
+ else if(b.id=='rback'){S.confirm=false;render()}
+ else if(b.id=='rok'){submitRep(b)}
+ else if(b.id=='rfin'){S.done=null;S.tab='dash';render();window.scrollTo(0,0);load()}
+ else if(d.ph){openPh(d.ph)}
+ else if(b.id=='phx'){S.view=null;render()}
+});
+document.addEventListener('input',function(e){var t=e.target,f=S.rep,id=t.id;if(!id||id.charAt(0)!='r')return;
+ if(id=='rpo'){f.p=t.value;if(!f.t0)f.t0=Date.now()}else if(id=='rk')f.km=t.value.replace(/[^0-9]/g,'');else if(id=='rn')f.nx=t.value.replace(/[^0-9]/g,'');
+ else if(id=='ro')f.other=t.value;else if(id=='rd')f.dt=t.value;else if(id=='rb')f.by=t.value;
+ var g=document.getElementById('rgo');if(g)g.disabled=!repValid()});
+document.addEventListener('change',function(e){var t=e.target;if(t.id=='rdp'){S.rep.dp=t.value}else if(t.id=='rph'&&t.files&&t.files[0]){photoIn(t.files[0])}});
+
+setInterval(function(){if(D&&!S.err&&!S.confirm&&!S.done&&!S.act&&!S.ckc&&S.tab!='rep'&&S.tab!='chk')load()},120000);
+var SEED=[{"p": "1 ขญ 240 กทม.", "br": "ผู้บริหาร", "ty": "รถทั่วไป", "code": "ฉ.1-25-1576", "desc": "แวนตรวจการ", "note": "รถเช่า"}, {"p": "3 ขพ 6092", "br": "ผู้บริหาร", "ty": "รถทั่วไป", "code": "ฉ.1-25-1267", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": "รถเช่า"}, {"p": "3 ขพ 6090", "br": "ผู้บริหาร", "ty": "รถทั่วไป", "code": "ฉ.1-25-1268", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": "รถเช่า"}, {"p": "1 นค 8083 กทม.", "br": "ผู้บริหาร", "ty": "รถทั่วไป", "code": "ฉ.1-25-1615", "desc": "รถตู้นั่งสี่ตอน", "note": "รถเช่า"}, {"p": "8 ขก 3216 กทม", "br": "ผู้บริหาร", "ty": "รถทั่วไป", "code": "ฉ.1-25-3344", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": "รถเช่า"}, {"p": "8 ขก 3230 กทม", "br": "ผู้บริหาร", "ty": "รถทั่วไป", "code": "ฉ.1-25-3343", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": "รถเช่า"}, {"p": "ขก 9406 อด.", "br": "แผนกก่อสร้างและบำรุงรักษา", "ty": "รถทั่วไป", "code": "ฉ.1-01-0659", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": ""}, {"p": "81-5122 อด.", "br": "แผนกก่อสร้างและบำรุงรักษา", "ty": "รถเครน", "code": "ฉ.1-04-3549", "desc": "บรรทุก 10 ตัน ติดตั้งเครน", "note": ""}, {"p": "84-4473 อด.", "br": "แผนกก่อสร้างและบำรุงรักษา", "ty": "รถทั่วไป", "code": "ฉ.1-04-3704", "desc": "กระบะ บรรทุก 6 ตัน", "note": ""}, {"p": "84-5030 อด.", "br": "แผนกก่อสร้างและบำรุงรักษา", "ty": "รถเครน", "code": "ฉ.1-09-0913", "desc": "บรรทุก 5 ตัน ติดเครนพับ", "note": ""}, {"p": "84-0827 อด.", "br": "แผนกก่อสร้างและบำรุงรักษา", "ty": "รถทั่วไป", "code": "ฉ.1-04-6459", "desc": "กระบะ บรรทุก 2 ตัน", "note": ""}, {"p": "84-7543 อด.", "br": "แผนกก่อสร้างและบำรุงรักษา", "ty": "รถทั่วไป", "code": "ฉ.1-04-7596", "desc": "กระบะ บรรทุก 3 ตัน", "note": ""}, {"p": "3 ฒบ 5030 กทม.", "br": "แผนกปฏิบัติการ", "ty": "รถทั่วไป", "code": "ฉ.1-25-3362", "desc": "บรรทุกเฉพาะกิจ (แก้ไฟ) 1 ตัน", "note": "รถเช่า"}, {"p": "84-2907 อด.", "br": "แผนกปฏิบัติการ", "ty": "รถทั่วไป", "code": "ฉ.1-04-5132", "desc": "กระบะ บรรทุก 4 ตัน ฮอทไลน์", "note": "รถยืมใช้งาน"}, {"p": "83-9424 อด.", "br": "แผนกปฏิบัติการ", "ty": "รถทั่วไป", "code": "ฉ.1-04-6357", "desc": "กระบะ บรรทุก 2 ตัน", "note": ""}, {"p": "81-5547 อด.", "br": "แผนกปฏิบัติการ", "ty": "รถเครน", "code": "ฉ.1-04-3619", "desc": "บรรทุก 2 ตัน ติดตั้งเครน", "note": ""}, {"p": "84-5923 อด.", "br": "แผนกปฏิบัติการ", "ty": "รถเครน", "code": "ฉ.1-09-1197", "desc": "บรรทุก 4 ตันติดกระเช้า", "note": ""}, {"p": "84-6932 อด.", "br": "แผนกปฏิบัติการ", "ty": "รถเครน", "code": "ฉ.1-09-1469", "desc": "บรรทุก 4 ตันติดกระเช้า", "note": ""}, {"p": "85-1524 อด.", "br": "แผนกปฏิบัติการ", "ty": "รถทั่วไป", "code": "", "desc": "บรรทุก 6 ตัน", "note": ""}, {"p": "84-8204 อด.", "br": "แผนกปฏิบัติการ", "ty": "รถทั่วไป", "code": "ฉ.1-04-7865", "desc": "บรรทุก 3 ตัน พร้อมตู้เก็บเครื่องมือ", "note": ""}, {"p": "กบ 2029 อด.", "br": "แผนกมิเตอร์และหม้อแปลง", "ty": "รถทั่วไป", "code": "ฉ.1-01-2137", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": ""}, {"p": "กม 8308 อด.", "br": "แผนกมิเตอร์และหม้อแปลง", "ty": "รถทั่วไป", "code": "ฉ.1-01-2238", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": ""}, {"p": "ผฉ 3680 อด.", "br": "แผนกมิเตอร์และหม้อแปลง", "ty": "รถทั่วไป", "code": "ฉ.1-04-6067", "desc": "กระบะ บรรทุก 2 ตัน", "note": ""}, {"p": "กฉ 8241 อด.", "br": "แผนกมิเตอร์และหม้อแปลง", "ty": "รถทั่วไป", "code": "ฉ.1-01-1750", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": ""}, {"p": "2 ขอ 483 กทม.", "br": "แผนกมิเตอร์และหม้อแปลง", "ty": "รถทั่วไป", "code": "ฉ.1-20-4160", "desc": "รถจักรยานยนต์", "note": ""}, {"p": "ขว 6815 ขก.", "br": "แผนกบัญชีประมวลผล", "ty": "รถทั่วไป", "code": "ฉ.1-25-1606", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": "รถเช่า"}, {"p": "ขว 6801 ขก.", "br": "แผนกบริการลูกค้า", "ty": "รถทั่วไป", "code": "ฉ.1-25-1605", "desc": "กระบะ บรรทุก 1 ตัน 4 ประตู มีหลังคา", "note": "รถเช่า"}, {"p": "2 ขอ 492 กทม.", "br": "แผนกบริการลูกค้า", "ty": "รถทั่วไป", "code": "ฉ.1-20-4161", "desc": "รถจักรยานยนต์", "note": ""}];
+function demo(){var s=3,r=function(){s=(s*9301+49297)%233280;return s/233280},rows=[],P={'ขก 9406 อด.':'ไฟสัญญาณ (ไฟวับวาบ,เลี้ยวซ้าย-ขวา,ถอยหลัง)','84-5030 อด.':'กระบอกยืดหด ใน-นอก','81-5122 อด.':'สายไฮดรอลิค (บวม, แตก)','84-4473 อด.':'สภาพยาง กระทะล้อ และน๊อตยึดล้อ','3 ขพ 6090':'ระบบเบรก (เบรกมือ/เบรกเท้า)','กบ 2029 อด.':'แบตเตอรี่ (ขั้ว, น้ำกลั่น)'};
+ for(var k=40;k>=0;k--){var d=new Date();d.setDate(d.getDate()-k);d.setHours(8,Math.floor(r()*50),0,0);
+  SEED.forEach(function(v,i){if(r()>(k==0?0.55:0.9))return;var bad=P[v.p]&&(r()<0.85||k<12),km=40000+i*4300+(40-k)*55;
+   rows.push({t:d.getTime(),d:dk(d.getTime()),br:v.br,dp:'',p:v.p,pk:pkey(v.p),ty:v.ty,km:km,nx:i%4==0?km-300:km+4000,ok:!bad,it:bad?[P[v.p]]:[],dt:bad?P[v.p]:'',by:'พนักงาน '+(i%5+1),fl:[],src:'form',kind:'form'})})}
+ rows.sort(function(a,b){return a.t-b.t});
+ return{rows:rows,done:{},st:{},veh:SEED.map(function(v){return{p:v.p,br:v.br,ty:v.ty,on:true,code:v.code,desc:v.desc,note:v.note}}),now:Date.now(),sheet:'ตัวอย่าง'}}
+/* ================= หน้า "ตรวจรถ" (เช็กลิสต์ ✓/✗/–) และ "ซ่อมแซม" (ขั้นตอนงานซ่อม) ================= */
+var KL={report:'รายงาน',repair:'แจ้งซ่อม',inspect:'ตรวจรถ'};
+var STG=['รับเรื่อง','กำลังซ่อม','รออะไหล่'];
+function ckSum(r){if(r.kind!='inspect'||!r.ck)return'';var c={o:0,x:0,n:0};Object.keys(r.ck).forEach(function(k){c[r.ck[k]]=(c[r.ck[k]]||0)+1});return"<div class='sub'>เช็กลิสต์: ✓ "+c.o+" · ✗ "+c.x+" · – "+c.n+"</div>"}
+function newCk(){var by='';try{by=localStorage.getItem('pr_by')||''}catch(e){}return{ub:'',br:'',p:'',ty:'',km:'',nx:'',by:by,photo:'',dt:'',st:{},t0:0,oc:false,oil:'',iv:10000,nxm:false}}
+function ckItems(f){return itemsFor(f.ty||'รถทั่วไป')}
+function ckValid(f){return!!(f.br&&f.p.trim()&&f.ty&&f.by.trim())}
+function photoCk(f){var fr=new FileReader();fr.onload=function(){var img=new Image();img.onload=function(){var s=Math.min(1,640/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);S.ck.photo=c.toDataURL('image/jpeg',0.6);render()};img.src=fr.result};fr.readAsDataURL(f)}
+async function submitCk(b){
+ b.disabled=true;b.textContent='กำลังบันทึก...';
+ var f=S.ck,g=await gps(),isG=!!(window.google&&google.script&&google.script.run),L=ckItems(f),ck={};
+ L.forEach(function(k){ck[k]=f.st[k]||'o'});var xs=L.filter(function(k){return ck[k]=='x'});
+ var nxv=f.oc?(f.nxm?f.nx:nxAuto(f)):'',oilv=f.oc?(f.oil||f.km):'';var p={kind:'inspect',p:f.p.trim(),br:f.br,dp:'',ty:f.ty,km:f.km,nx:nxv,oil:oilv,ok:!xs.length,it:xs,dt:xs.length?f.dt.trim():'',by:f.by.trim(),ck:ck,photoData:f.photo||'',lat:g?g.lat:null,lng:g?g.lng:null,durMs:f.t0?Date.now()-f.t0:0};
+ try{localStorage.setItem('pr_by',p.by)}catch(e){}
+ var fin=function(res){var by=f.by,br=f.br;S.done={p:p,t:(res&&res.t)||Date.now()};S.ckc=false;S.ck=newCk();S.ck.ub=f.ub;S.ck.by=by;if(!isG)demoAdd(p,S.done.t);render();if(isG)load()};
+ if(isG)google.script.run.withSuccessHandler(fin).withFailureHandler(function(e){b.disabled=false;b.textContent='ยืนยันบันทึก';toast((e&&e.message)||'บันทึกไม่สำเร็จ ลองใหม่')}).apiSubmit(p);else fin({t:Date.now()})
+}
+function stageBar(o){var all=['แจ้งแล้ว'].concat(STG,['ซ่อมเสร็จ']),cur=o.open?(o.stage?all.indexOf(o.stage):0):all.length-1;
+ return"<div style='display:flex;gap:4px;margin:10px 0'>"+all.map(function(x,i){return"<div style='flex:1;text-align:center'><i style='display:block;height:6px;border-radius:4px;background:"+(i<=cur?'var(--pri)':'var(--nob)')+"'></i><span class='sub' style='font-size:11px'>"+x+"</span></div>"}).join('')+"</div>"}
+function fixView(){
+ var br=S.br,fx=S.fx||'open',all=ISS.filter(function(i){return!br||i.br==br}),open=all.filter(function(i){return i.open}),
+ wait=open.filter(function(i){return!i.stage}),prog=open.filter(function(i){return i.stage}),done=all.filter(function(i){return!i.open}),
+ dd=done.filter(function(i){return i.doneMs&&i.doneMs>=i.first}),avg=dd.length?dd.reduce(function(s,i){return s+(i.doneMs-i.first)},0)/dd.length/864e5:0;
+ var list=fx=='done'?done.slice().sort(function(a,b){return b.doneMs-a.doneMs}):(fx=='open'?open:fx=='แจ้งแล้ว'?wait:open.filter(function(i){return i.stage==fx})).slice().sort(function(a,b){return b.urg-a.urg||b.days-a.days});
+ var h="<div class='hd'><div><h1>รอซ่อม</h1><div class='sub'>รถที่ตรวจพบความผิดปกติจะมาอยู่ที่นี่ พร้อมปัญหา ติดตามจนซ่อมเสร็จ ข้อมูลที่ซ่อมเสร็จแล้วยังเก็บไว้ครบ</div></div><div style='display:flex;gap:8px;flex-wrap:wrap'><select class='p glass' id='fb'><option value=''>ทุกแผนก</option>"+brs().map(function(b){return"<option"+(b==br?' selected':'')+">"+esc(b)+"</option>"}).join('')+"</select><button class='btn s' id='fnew'>+ แจ้งซ่อมใหม่</button></div></div>";
+ h+="<div class='kg'>"+[['🆕','รอรับเรื่อง',wait.length,'var(--badb)'],['🛠','กำลังดำเนินการ',prog.length,'var(--pub)'],['✅','ซ่อมเสร็จแล้ว',done.length,'var(--okb)'],['⏱','เวลาซ่อมเฉลี่ย',avg?avg.toFixed(1)+' วัน':'–','rgba(91,188,247,.2)']].map(function(k){return"<div class='kc'><div class='ic' style='background:"+k[3]+"'>"+k[0]+"</div><div class='t'>"+k[1]+"</div><b>"+k[2]+"</b></div>"}).join('')+"</div>";
+ h+="<div style='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px'>"+[['open','ค้างทั้งหมด ('+open.length+')'],['แจ้งแล้ว','แจ้งแล้ว'],['รับเรื่อง','รับเรื่อง'],['กำลังซ่อม','กำลังซ่อม'],['รออะไหล่','รออะไหล่'],['done','ซ่อมเสร็จ (เก็บข้อมูล)']].map(function(x){return"<button class='btn s"+(fx==x[0]?'':' g')+"' data-fx='"+x[0]+"'>"+x[1]+"</button>"}).join('')+"</div>";
+ h+=list.slice(0,80).map(function(o){var ix=ISS.indexOf(o);
+  var acts=o.open?"<div style='display:flex;gap:6px;flex-wrap:wrap'>"+STG.filter(function(s){return s!=o.stage}).map(function(s){return"<button class='btn s g' data-fa='"+s+"' data-fi='"+ix+"'>"+s+"</button>"}).join('')+"<button class='btn s' data-fa='ซ่อมเสร็จ' data-fi='"+ix+"'>✓ ซ่อมเสร็จ</button></div>":'';
+  return"<div class='card'><div class='row'><b>"+esc(o.p)+"</b><span>"+(o.urg&&o.open?pill('ด่วน','ur')+' ':'')+pill(o.open?(o.stage||'แจ้งแล้ว'):'ซ่อมเสร็จ',o.open?(o.stage?'op':'ur'):'ok')+"</span></div><div>"+esc(o.it)+"</div>"+(o.dt&&o.dt!=o.it?"<div class='sub'>"+esc(o.dt)+"</div>":'')+stageBar(o)+"<div class='sub'>"+esc(o.br)+(o.dp&&o.dp!=o.br?' · '+esc(o.dp):'')+" · แจ้งครั้งแรก "+dshort(o.first)+" · "+o.n+" รายงาน"+(o.open?" · ค้าง "+o.days+" วัน":'')+"</div>"+
+   (o.open&&o.stage&&o.sms?"<div class='sub'>"+o.stage+" เมื่อ "+dfull(o.sms)+(o.snote?" · "+esc(o.snote):'')+"</div>":'')+
+   (!o.open?"<div class='sub'>ซ่อมเสร็จ "+(o.doneMs?dfull(o.doneMs)+" (ใช้เวลา "+Math.max(0,Math.round((o.doneMs-o.first)/864e5))+" วัน)":'')+" · "+(o.dnote?esc(o.dnote)+' · ':'')+o.why+"</div>":'')+(acts?"<div style='margin-top:8px'>"+acts+"</div>":'')+"</div>"}).join('')||"<div class='card sub'>ไม่มีรายการ</div>";
+ return h}
+function xSheets(){
+ if(S.act){var a=S.act,o=ISS[a.i];return"<div class='sheet'><div><h1>"+(a.s=='ซ่อมเสร็จ'?'บันทึกซ่อมเสร็จ':'อัปเดตสถานะ: '+esc(a.s))+"</h1><div class='card' style='margin-top:12px'><b>"+esc(o.p)+"</b><div>"+esc(o.it)+"</div></div><textarea id='fnote' rows='3' placeholder='หมายเหตุ เช่น เปลี่ยนหลอดไฟแล้ว (ไม่บังคับ)'></textarea><button class='btn' id='fok'>ยืนยัน</button><button class='btn g' id='fno'>ยกเลิก</button></div></div>"}
+ if(S.ckc){var f=S.ck,L=ckItems(f),c={o:0,x:0,n:0},xs=[];L.forEach(function(k){var v=f.st[k]||'o';c[v]++;if(v=='x')xs.push(k)});
+  return"<div class='sheet'><div><h1>ยืนยันการตรวจรถ</h1><div class='card' style='margin-top:12px'><div class='sub'>แผนก/ทะเบียน</div><b>"+esc(f.br)+" · "+esc(f.p)+"</b><div class='sub' style='margin-top:8px'>ประเภท / ไมล์</div>"+esc(f.ty)+(f.km?' · '+nf(f.km):'')+"<div class='sub' style='margin-top:8px'>เช็กลิสต์</div>✓ "+c.o+" · ✗ "+c.x+" · – "+c.n+(xs.length?"<br>"+xs.map(function(x){return'• '+esc(x)}).join('<br>')+(f.dt?"<br><span class='sub'>"+esc(f.dt)+"</span>":''):'')+"<div class='sub' style='margin-top:8px'>ผู้ตรวจ</div>"+esc(f.by)+(f.oc?"<div class='sub' style='margin-top:8px'>เปลี่ยนน้ำมันเครื่อง</div>ที่ "+nf(f.oil||f.km||0)+" กม. · ครั้งถัดไป "+nf((f.nxm?f.nx:nxAuto(f))||0):'')+"<div class='sub' style='margin-top:8px'>วันที่และเวลา</div>"+dfull(Date.now())+"</div><button class='btn' id='kok'>ยืนยันบันทึก</button><button class='btn g' id='kback'>กลับไปแก้ไข</button></div></div>"}
+ return''}
+function doStage(b){var a=S.act,o=ISS[a.i],note=(document.getElementById('fnote')||{}).value||'';b.disabled=true;b.textContent='กำลังบันทึก...';
+ var fin=function(ms){ms=ms||Date.now();D.st=D.st||{};var c=D.st[o.k]||(D.st[o.k]={done:0,dnote:'',dby:'',stage:'',sms:0,note:'',by:''});
+  if(a.s=='ซ่อมเสร็จ'){c.done=ms;c.dnote=note;c.stage='';c.sms=0;D.done[o.k]=ms}else{c.stage=a.s;c.sms=ms;c.note=note}
+  S.act=null;build();render();toast(a.s=='ซ่อมเสร็จ'?'บันทึกซ่อมเสร็จแล้ว':'อัปเดตสถานะแล้ว')};
+ if(window.google&&google.script&&google.script.run)google.script.run.withSuccessHandler(fin).withFailureHandler(function(e){b.disabled=false;b.textContent='ยืนยัน';toast((e&&e.message)||'บันทึกไม่สำเร็จ ลองใหม่')}).apiStage(o.pk,o.p,o.it,a.s,note);else fin(Date.now())}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset,f=S.ck=S.ck||newCk();
+ if(d.km!==undefined){var x=FLEET.filter(function(q){return q.pk==d.km})[0];pickCk(x.pk,x.br)}
+ else if(d.kb!==undefined){f.br=d.kb;render()}
+ else if(d.kp!==undefined){var y=FLEET.filter(function(q){return q.pk==d.kp})[0];pickCk(y.pk,y.br)}
+ else if(d.kt!==undefined){f.ty=d.kt;f.st={};render()}
+ else if(d.kc!==undefined){var k=ckItems(f)[+d.kc],cv=f.st[k]||'o';f.st[k]=cv=='o'?'x':cv=='x'?'n':'o';render()}
+ else if(b.id=='kall'){f.st={};render()}
+ else if(b.id=='kgo'){S.ckc=true;render()}
+ else if(b.id=='kback'){S.ckc=false;render()}
+ else if(b.id=='kok'){submitCk(b)}
+ else if(d.rk!==undefined){S.rep.kind=d.rk;S.rep.res=d.rk=='repair'?'bad':'';render()}
+ else if(d.fx!==undefined){S.fx=d.fx;render()}
+ else if(d.fa!==undefined){S.act={s:d.fa,i:+d.fi};render()}
+ else if(b.id=='fno'){S.act=null;render()}
+ else if(b.id=='fok'){doStage(b)}
+ else if(b.id=='fnew'){S.rep.kind='repair';S.rep.res='bad';S.tab='rep';render();window.scrollTo(0,0)}
+});
+function lastOf(pk){var a=BY[pk]||[],x=FLEET.filter(function(q){return q.pk==pk})[0]||{};return{a:a,L:a.length?a[a.length-1]:{p:x.p||'',br:x.br||'',ty:x.ty||'',dp:''}}}
+function pickCk(pk,br){var f=S.ck,o=lastOf(pk),a=o.a,L=o.L,nx=null;for(var i=a.length-1;i>=0&&!nx;i--)if(a[i].nx)nx=a[i].nx;f.br=br||L.br||f.br;f.p=L.p;f.ty=tyOf(L.ty);f.nx='';f.nxm=false;f.oc=false;f.oil='';f.km='';f.st={};f.t0=Date.now();if(!f.ub)f.ub=f.br||'__all';render()}
+document.addEventListener('input',function(e){var t=e.target,f=S.ck=S.ck||newCk(),id=t.id;if(!id||id.charAt(0)!='k')return;
+ if(id=='kpo'){f.p=t.value;if(!f.t0)f.t0=Date.now()}else if(id=='kk')f.km=t.value.replace(/[^0-9]/g,'');else if(id=='kd')f.dt=t.value;else if(id=='kby')f.by=t.value;
+ var g=document.getElementById('kgo');if(g)g.disabled=!ckValid(f)});
+document.addEventListener('change',function(e){var t=e.target;if(t.id=='kph'&&t.files&&t.files[0]){photoCk(t.files[0])}});
+
+/* ================= ตรวจรถ (แผนก → ทะเบียน → ชื่อผู้ตรวจ → เช็กลิสต์ → เลขไมล์) ================= */
+function nxAuto(f){var b=+(f.oil||f.km)||0;return b?String(b+(+f.iv||10000)):''}
+function chkView(){
+ var f=S.ck=S.ck||newCk(),td={};R.forEach(function(r){if(r.d==TD)td[r.pk]=r});
+ var dn=FLEET.filter(function(x){return td[x.pk]}).length,cnt={};FLEET.forEach(function(x){cnt[x.br]=(cnt[x.br]||0)+1});
+ var h="<h1>ตรวจรถ</h1><div class='sub'>ตรวจแล้ววันนี้ <b>"+dn+" / "+FLEET.length+"</b> คัน · แผนก → ทะเบียน → ชื่อผู้ตรวจ → เช็กลิสต์ → เลขไมล์ แล้วบันทึกลงชีต</div>";
+ h+="<h2 style='margin-top:16px'>1. แผนก</h2><div class='grid'><button class='v"+(f.ub=='__all'?' on':'')+"' data-ku='__all'>"+(f.ub=='__all'?'✓ ':'')+"ทุกแผนก<small>"+FLEET.length+" คัน</small></button>"+allBr().map(function(b){return"<button class='v"+(f.ub==b?' on':'')+"' data-ku='"+esc(b)+"'>"+(f.ub==b?'✓ ':'')+esc(b)+"<small>"+(cnt[b]||0)+" คัน</small></button>"}).join('')+"</div>";
+ h+="<h2 style='margin-top:16px'>2. ทะเบียนรถ</h2>";
+ if(!f.ub&&!f.p)h+="<div class='sub'>เลือกแผนกก่อน (ถ้าจำแผนกไม่ได้ เลือก “ทุกแผนก”)</div>";
+ else{var list=FLEET.filter(function(x){return!f.ub||f.ub=='__all'||x.br==f.ub});
+  h+=(list.length?"<div class='grid'>"+list.map(function(x){var t=td[x.pk];return"<button class='v"+(x.p==f.p?' on':'')+"' data-kp='"+esc(x.pk)+"'>"+(x.p==f.p?'✓ ':(t?'✅ ':''))+esc(x.p)+(t?"<small>ตรวจแล้ว "+hm(t.t)+"</small>":'')+"</button>"}).join('')+"</div>":"<div class='sub'>ไม่มีรถของแผนกนี้ในรายชื่อ พิมพ์ทะเบียนเองด้านล่างได้</div>")+"<input id='kpo' placeholder='ไม่มีในรายการ? พิมพ์ทะเบียนเอง' value='"+esc(FLEET.some(function(x){return x.p==f.p})?'':f.p)+"' style='margin-top:10px'>"}
+ h+="<div class='sub' style='margin:12px 0 6px'>ประเภทรถ (ระบบเลือกให้ ถ้าไม่ตรงแตะเปลี่ยน)</div><div class='grid'>"+['รถทั่วไป','รถเครน','รถยก'].map(function(t){return"<button class='v"+(t==f.ty?' on':'')+"' data-kt='"+t+"'>"+(t==f.ty?'✓ ':'')+t+"</button>"}).join('')+"</div>";
+ if(f.p&&!f.br)h+="<div class='sub' style='margin:12px 0 6px'>เลือกแผนกของรถคันนี้</div><div class='grid'>"+allBr().map(function(b){return"<button class='v' data-kb='"+esc(b)+"'>"+esc(b)+"</button>"}).join('')+"</div>";
+ var fx=FLEET.filter(function(q){return q.p==f.p})[0];
+ if(fx&&(fx.code||fx.desc))h+="<div class='note' style='margin-top:10px'>"+(fx.code?'รหัส '+esc(fx.code)+' · ':'')+esc(fx.desc||'')+(fx.note?' · '+esc(fx.note):'')+"</div>";
+ h+="<h2 style='margin-top:16px'>3. ชื่อผู้ตรวจ</h2><div class='card'><input id='kby' value='"+esc(f.by)+"' placeholder='รหัสพนักงาน หรือชื่อ-สกุล' style='margin:0'></div>";
+ var G=GRP[f.ty||'รถทั่วไป'],idx=0,nx=0;
+ h+="<div class='row' style='margin-top:16px'><h2>4. เช็กลิสต์</h2><button class='btn s g' id='kall'>ตั้งทุกข้อปกติ</button></div><div class='sub' style='margin-bottom:8px'>ไม่แตะ = ปกติ · แตะ 1 ครั้ง = ผิดปกติ (แดง) · แตะ 2 ครั้ง = ไม่เกี่ยวข้อง (เทา) · แตะอีกครั้ง = กลับเป็นปกติ</div>";
+ G.forEach(function(g){if(G.length>1)h+="<div class='sub' style='margin:12px 0 6px;font-weight:700'>"+esc(g[0])+"</div>";
+  h+="<div class='grid2'>"+g[1].map(function(it){var i=idx++,v=f.st[it]||'o';if(v=='x')nx++;return"<button class='v"+(v=='x'?' on':v=='n'?' na':'')+"' data-kc='"+i+"'>"+(v=='x'?'✗ ':v=='n'?'– ':'')+esc(it)+(v=='n'?"<small>ไม่เกี่ยวข้อง</small>":sfx(it))+"</button>"}).join('')+"</div>"});
+ if(nx)h+="<input id='kd' value='"+esc(f.dt)+"' placeholder='รายละเอียดข้อบกพร่อง (ไม่บังคับ)' style='margin-top:10px'>";
+ var o=OIL.filter(function(q){return q.pk==pkey(f.p)})[0];
+ h+="<h2 style='margin-top:16px'>5. เลขไมล์</h2><div class='card'><label class='l' style='margin:0'>เลขไมล์หลังตรวจ"+(f.ty=='รถยก'?' / ชั่วโมงทำงาน':'')+" (ไม่บังคับ)</label><input id='kk' inputmode='numeric' value='"+esc(f.km)+"' placeholder='เช่น 84520'>"+(o?"<div class='sub' style='margin-top:6px'>เปลี่ยนน้ำมันเครื่องครั้งถัดไปที่ "+nf(o.nx)+" · ไมล์ล่าสุด "+nf(o.km)+" ("+(o.diff<=0?'เลยกำหนด '+nf(-o.diff):'อีก '+nf(o.diff))+" กม.)</div>":'')+"<button class='btn s"+(f.oc?'':' g')+"' id='koc' style='margin-top:12px'>"+(f.oc?'✓ ':'')+"วันนี้เปลี่ยนน้ำมันเครื่อง</button>";
+ if(f.oc)h+="<label class='l'>เลขไมล์หลังเปลี่ยนน้ำมันเครื่อง</label><input id='ko' inputmode='numeric' value='"+esc(f.oil||f.km)+"' placeholder='ใช้เลขไมล์หลังตรวจ'><label class='l'>เปลี่ยนครั้งถัดไปที่ (ไมล์)</label><div style='display:flex;gap:6px;margin:4px 0'>"+[5000,10000].map(function(iv){return"<button class='btn s"+(f.iv==iv?'':' g')+"' data-kiv='"+iv+"'>+"+nf(iv)+"</button>"}).join('')+"</div><input id='kn' inputmode='numeric' value='"+esc(f.nxm?f.nx:nxAuto(f))+"'>";
+ h+="</div><h2 style='margin-top:16px'>6. หลักฐาน (ไม่บังคับ)</h2><div class='card'><label class='l' style='margin:0'>รูปถ่ายรถ/หน้าปัด</label>"+(f.photo?"<img alt='' src='"+f.photo+"' style='width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-top:6px'>":'')+"<label class='btn s g' style='display:inline-block;margin-top:8px'>"+(f.photo?'ถ่ายใหม่':'📷 ถ่ายรูป')+"<input id='kph' type='file' accept='image/*' capture='environment' style='display:none'></label><div class='sub' style='margin-top:8px'>📍 ระบบจะขอพิกัดตอนกดยืนยัน (ไม่บังคับ)</div></div>";
+ h+="<button class='btn' id='kgo'"+(ckValid(f)?'':' disabled')+">"+(!f.br&&f.p.trim()?'เลือกหน่วยงานก่อน':'ตรวจสอบและยืนยัน'+(nx?' (พบปัญหา '+nx+' ข้อ)':''))+"</button>";
+ var lt=R.filter(function(r){return r.d==TD}).slice(-10).reverse();
+ h+="<h2 style='margin-top:20px'>ตรวจ/รายงานล่าสุดวันนี้</h2>"+(lt.map(function(r){return"<div class='card'><div class='row'><b>"+esc(r.p)+"</b><span class='sub'>"+hm(r.t)+" น. · "+esc(r.by||'-')+"</span></div><div class='sub'>"+(r.src=='web'?KL[r.kind]||'รายงาน':'ฟอร์ม')+(r.ok?' · ปกติ':' · พบปัญหา: '+r.it.map(esc).join(', '))+"</div>"+ckSum(r)+evid(r)+(r.fl&&r.fl.length?r.fl.map(function(x){return"<span class='bd r'>⚠ "+x+"</span> "}).join(''):'')+"</div>"}).join('')||"<div class='card sub'>วันนี้ยังไม่มีการตรวจ</div>");
+ return h}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset,f=S.ck=S.ck||newCk();
+ if(d.ku!==undefined){f.ub=d.ku;if(d.ku!='__all'&&f.p){var x=FLEET.filter(function(q){return q.p==f.p})[0];if(x&&x.br!=d.ku){f.p='';f.br='';f.ty='';f.st={}}}
+  if(d.ku!='__all'&&f.p&&!f.br)f.br=d.ku;render()}
+ else if(b.id=='koc'){f.oc=!f.oc;render()}
+ else if(d.kiv!==undefined){f.iv=+d.kiv;f.nxm=false;render()}
+});
+document.addEventListener('input',function(e){var t=e.target,f=S.ck=S.ck||newCk(),id=t.id;
+ if(id=='kpo'){if(!f.br&&f.ub&&f.ub!='__all')f.br=f.ub;var g0=document.getElementById('kgo');if(g0)g0.disabled=!ckValid(f)}
+ else if(id=='ko'){f.oil=t.value.replace(/[^0-9]/g,'');var n1=document.getElementById('kn');if(n1&&!f.nxm)n1.value=nxAuto(f)}
+ else if(id=='kn'){f.nx=t.value.replace(/[^0-9]/g,'');f.nxm=true}
+ else if(id=='kk'){var n2=document.getElementById('kn');if(n2&&!f.nxm)n2.value=nxAuto(f)}});
+
+/* ================= เปอร์เซ็นต์การตรวจ: แผนก → รายวัน / สัปดาห์ / เดือน → บันทึกลงชีต ================= */
+function monOf(ms){var d=new Date(ms).getUTCDay();return ms-((d+6)%7)*864e5}
+function pctOf(unit){  /* สูตรเดียวกับ pctCalc_ ใน Code.gs */
+ var fl=FLEET.filter(function(x){return!unit||x.br==unit}),set={},cnt={};fl.forEach(function(x){set[x.pk]=1});
+ R.forEach(function(r){if(set[r.pk])(cnt[r.d]=cnt[r.d]||{})[r.pk]=1});
+ var tot=fl.length;
+ function c(k){return cnt[k]?Object.keys(cnt[k]).length:0}
+ function dp(k){return tot?c(k)/tot*100:0}
+ function key(ms){return new Date(ms).toISOString().slice(0,10)}
+ function avg(from,to){var s=0,n=0;for(var ms=from;ms<=to;ms+=864e5){s+=dp(key(ms));n++}return n?s/n:0}
+ return{fl:fl,tot:tot,cnt:cnt,c:c,dp:dp,key:key,avg:avg}}
+function barsHtml(v,l){return"<div style='display:flex;gap:4px;align-items:flex-end'>"+v.map(function(x,i){return"<div style='flex:1;text-align:center;min-width:0'><div style='height:90px;display:flex;align-items:flex-end'><i style='display:block;width:100%;height:"+Math.max(3,x*0.9)+"px;border-radius:6px;background:linear-gradient(var(--pu),var(--pri))'></i></div><div style='font-size:11px;font-weight:600'>"+Math.round(x)+"%</div><div class='sub' style='font-size:10px'>"+l[i]+"</div></div>"}).join('')+"</div>"}
+function pctView(){
+ var P=S.pu,pm=S.pm||'day',base=Date.parse(TD+'T00:00:00Z'),mon=monOf(base),bd=new Date(base),first=Date.UTC(bd.getUTCFullYear(),bd.getUTCMonth(),1);
+ if(P===null||P===undefined){
+  var us={};FLEET.forEach(function(x){if(x.br)us[x.br]=1});var units=['__all'].concat(Object.keys(us).sort());
+  var h="<div class='hd'><div><h1>เปอร์เซ็นต์การตรวจ</h1><div class='sub'>แตะแผนก เพื่อดูรายวัน · สัปดาห์ · เดือน แล้วบันทึกลงชีตได้</div></div><button class='btn s' id='psaveall'>บันทึกทุกแผนกลงชีต</button></div>";
+  return h+units.map(function(u){var o=pctOf(u=='__all'?'':u),t=o.dp(TD),w=o.avg(mon,base),m=o.avg(first,base);
+   return"<button class='card' data-pu='"+esc(u)+"' style='display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer'><div class='row'><b>"+(u=='__all'?'ทุกแผนก (ทั้งหมด)':esc(u))+"</b><span class='big'>"+Math.round(t)+"%</span></div><div style='height:8px;border-radius:6px;background:var(--nob);overflow:hidden;margin:8px 0'><i style='display:block;height:100%;width:"+t+"%;background:linear-gradient(90deg,var(--pri),var(--pu))'></i></div><div class='sub'>วันนี้ "+o.c(TD)+"/"+o.tot+" คัน · สัปดาห์ "+Math.round(w)+"% · เดือน "+Math.round(m)+"%</div></button>"}).join('')+"<div class='sub'>รถทั้งหมด = รถในแท็บ “รายชื่อรถ” (ใช้งาน) + รถที่รายงานภายใน 30 วัน</div>"}
+ var U=P=='__all'?'':P,o=pctOf(U),from,v=[],l=[],i,main,lab;
+ var h="<div class='row' style='margin-bottom:10px'><button class='btn s g' data-pu='__list'>← เลือกแผนก</button><button class='btn s' id='psave' data-pu='"+esc(P)+"'>บันทึกลงชีต</button></div><h1>"+(P=='__all'?'ทุกแผนก':esc(P))+"</h1><div style='display:flex;gap:6px;margin:10px 0'>"+[['day','รายวัน'],['week','สัปดาห์'],['month','เดือน']].map(function(x){return"<button class='btn s"+(pm==x[0]?'':' g')+"' data-pm='"+x[0]+"'>"+x[1]+"</button>"}).join('')+"</div>";
+ if(pm=='day'){for(i=13;i>=0;i--){var ms=base-i*864e5;v.push(o.dp(o.key(ms)));l.push(o.key(ms).slice(8)+'/'+o.key(ms).slice(5,7))}main=o.dp(TD);lab='วันนี้ '+o.c(TD)+'/'+o.tot+' คัน';from=base}
+ else if(pm=='week'){for(i=7;i>=0;i--){var f0=mon-i*7*864e5;v.push(o.avg(f0,Math.min(f0+6*864e5,base)));l.push(o.key(f0).slice(8)+'/'+o.key(f0).slice(5,7))}main=o.avg(mon,base);lab='สัปดาห์นี้ (จันทร์ '+o.key(mon)+' ถึงวันนี้)';from=mon}
+ else{for(i=5;i>=0;i--){var m0=Date.UTC(bd.getUTCFullYear(),bd.getUTCMonth()-i,1),m1=Date.UTC(bd.getUTCFullYear(),bd.getUTCMonth()-i+1,0);v.push(o.avg(m0,Math.min(m1,base)));l.push(o.key(m0).slice(0,7))}main=o.avg(first,base);lab='เดือนนี้ ('+o.key(first).slice(0,7)+')';from=first}
+ h+="<div class='card'><div class='sub'>"+lab+"</div><div class='big'>"+Math.round(main)+"%</div><div style='height:10px;border-radius:6px;background:var(--nob);overflow:hidden;margin:8px 0'><i style='display:block;height:100%;width:"+main+"%;background:linear-gradient(90deg,var(--pri),var(--pu))'></i></div>"+barsHtml(v,l)+"</div>";
+ if(pm=='day'){var miss=o.fl.filter(function(x){return!(o.cnt[TD]&&o.cnt[TD][x.pk])});
+  h+="<div class='card'><h2>ยังไม่ตรวจวันนี้ ("+miss.length+" คัน)</h2>"+(miss.length?"<div style='display:flex;flex-wrap:wrap;gap:6px'>"+miss.map(function(x){return"<button class='pill ur' style='border:0;font-family:inherit' data-pl='"+esc(x.pk)+"'>"+esc(x.p)+"</button>"}).join('')+"</div>":"<div class='sub'>ตรวจครบแล้ว 🎉</div>")+"</div>"}
+ else{var n=Math.round((base-from)/864e5)+1,rows=o.fl.map(function(x){var d=0;for(var ms2=from;ms2<=base;ms2+=864e5){var cc=o.cnt[o.key(ms2)];if(cc&&cc[x.pk])d++}return{p:x.p,d:d,pc:d/n*100}}).sort(function(a,b){return a.pc-b.pc});
+  h+="<div class='card'><h2>รายคัน (ตรวจกี่วันจาก "+n+" วัน)</h2>"+rows.slice(0,40).map(function(r){return"<div class='tr' style='grid-template-columns:1.4fr 1fr 70px'><b>"+esc(r.p)+"</b><span class='sub'>"+r.d+"/"+n+" วัน</span>"+pill(Math.round(r.pc)+'%',r.pc>=80?'ok':r.pc>=50?'op':'ur')+"</div>"}).join('')+"</div>"}
+ return h+"<div class='sub'>สัปดาห์/เดือน = ค่าเฉลี่ยของเปอร์เซ็นต์รายวัน ตั้งแต่ต้นช่วงถึงวันนี้ (นับทุกวัน รวมวันหยุด)</div>"}
+function savePct(arg,b){var isG=!!(window.google&&google.script&&google.script.run);
+ if(!isG){toast('(ตัวอย่าง) เมื่อใช้งานจริงจะบันทึกลงแท็บ “สรุปเปอร์เซ็นต์”');return}
+ b.disabled=true;google.script.run.withSuccessHandler(function(r){b.disabled=false;toast('บันทึกลงชีต “สรุปเปอร์เซ็นต์” แล้ว ('+(r?r.length:0)+' แถว)')}).withFailureHandler(function(e){b.disabled=false;toast((e&&e.message)||'บันทึกไม่สำเร็จ')}).apiSavePercent(arg)}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset;
+ if(d.pu!==undefined&&b.id!='psave'){S.pu=d.pu=='__list'?null:d.pu;render();window.scrollTo(0,0)}
+ else if(d.pm!==undefined){S.pm=d.pm;render()}
+ else if(b.id=='psave'){savePct(S.pu=='__all'?'':S.pu,b)}
+ else if(b.id=='psaveall'){savePct(null,b)}
+});
+
+/* ================= ประวัติ: สรุป (ตรวจแล้วคันไหน ปัญหาที่เจอ) + รายคัน ================= */
+function sumRange(per){var base=Date.parse(TD+'T00:00:00Z'),bd=new Date(base),k=function(ms){return new Date(ms).toISOString().slice(0,10)};
+ var from=per=='day'?base:per=='week'?monOf(base):Date.UTC(bd.getUTCFullYear(),bd.getUTCMonth(),1);
+ return{from:k(from),to:TD,label:per=='day'?TD:per=='week'?k(from)+' ถึง '+TD:TD.slice(0,7)}}
+var PN={day:'รายวัน',week:'สัปดาห์',month:'เดือน'};
+function sumCalc(per,unit){
+ var rg=sumRange(per),fl=FLEET.filter(function(x){return!unit||x.br==unit}),set={};fl.forEach(function(x){set[x.pk]=1});
+ var rows=R.filter(function(r){return set[r.pk]&&r.d>=rg.from&&r.d<=rg.to}),by={},top={};
+ rows.forEach(function(r){(by[r.pk]=by[r.pk]||[]).push(r)});
+ var checked=Object.keys(by).map(function(pk){var rs=by[pk],items={},L=rs[rs.length-1];rs.forEach(function(r){if(!r.ok)r.it.forEach(function(x){items[x]=(items[x]||0)+1;top[x]=(top[x]||0)+1})});return{pk:pk,p:L.p,last:L,items:Object.keys(items),n:rs.length}});
+ checked.sort(function(a,b){return b.last.t-a.last.t});
+ var probs=checked.filter(function(c){return c.items.length}),miss=fl.filter(function(x){return!by[x.pk]});
+ var tk=Object.keys(top).sort(function(a,b){return top[b]-top[a]}).slice(0,5).map(function(k){return k+' ×'+top[k]}),pc=fl.length?Math.round(checked.length/fl.length*100):0;
+ var pcount=probs.reduce(function(s,c){return s+c.items.length},0);
+ var tx='สรุปการตรวจรถ'+PN[per]+' '+rg.label+'\nแผนก: '+(unit||'ทั้งหมด')+'\nตรวจแล้ว '+checked.length+'/'+fl.length+' คัน ('+pc+'%)\nพบปัญหา '+probs.length+' คัน ('+pcount+' รายการ)'+probs.map(function(c){return'\n• '+c.p+': '+c.items.join(', ')}).join('')+'\nยังไม่ตรวจ '+miss.length+' คัน'+(miss.length?': '+miss.map(function(x){return x.p}).join(', '):'');
+ return{rg:rg,fl:fl,checked:checked,probs:probs,miss:miss,top:tk,pc:pc,pcount:pcount,text:tx}}
+function sumView(){
+ var per=S.sp||'day',u=S.su||'',c=sumCalc(per,u),units={};FLEET.forEach(function(x){if(x.br)units[x.br]=1});
+ var h="<div style='display:flex;gap:6px;flex-wrap:wrap;margin:10px 0'>"+['day','week','month'].map(function(p){return"<button class='btn s"+(per==p?'':' g')+"' data-sp='"+p+"'>"+PN[p]+"</button>"}).join('')+"<select class='p glass' id='sunit'><option value=''>ทุกแผนก</option>"+Object.keys(units).sort().map(function(b){return"<option"+(b==u?' selected':'')+">"+esc(b)+"</option>"}).join('')+"</select></div>";
+ h+="<div class='kg'>"+[['✅','ตรวจแล้ว',c.checked.length+'/'+c.fl.length,c.pc+'%'],['⚠','พบปัญหา',c.probs.length+' คัน',c.pcount+' รายการ'],['⏳','ยังไม่ตรวจ',c.miss.length+' คัน','']].map(function(k){return"<div class='kc'><div class='ic' style='background:var(--pub)'>"+k[0]+"</div><div class='t'>"+k[1]+"</div><b>"+k[2]+"</b><span class='sub'>"+k[3]+"</span></div>"}).join('')+"</div>";
+ h+="<div class='card'><h2>ปัญหาที่พบบ่อย</h2><div class='sub'>"+(c.top.length?c.top.map(esc).join(' · '):'ไม่พบปัญหาในช่วงนี้')+"</div></div>";
+ h+="<div class='card'><h2>รถที่ตรวจแล้ว ("+c.checked.length+" คัน) · "+c.rg.label+"</h2>"+(c.checked.slice(0,60).map(function(x){return"<div class='tr' style='grid-template-columns:1.3fr 1.6fr 70px'><span class='ell'><b>"+esc(x.p)+"</b><div class='sub'>"+dshort(x.last.t)+' '+hm(x.last.t)+" · "+esc(x.last.by||'-')+"</div></span><span class='ell sub'>"+(x.items.length?esc(x.items.join(', ')):'ปกติ')+"</span>"+pill(x.items.length?'พบปัญหา':'ปกติ',x.items.length?'ur':'ok')+"</div>"}).join('')||"<div class='sub'>ยังไม่มีการตรวจในช่วงนี้</div>")+"</div>";
+ h+="<div class='card'><h2>ยังไม่ตรวจ ("+c.miss.length+" คัน)</h2>"+(c.miss.length?"<div style='display:flex;flex-wrap:wrap;gap:6px'>"+c.miss.map(function(x){return"<button class='pill op' style='border:0;font-family:inherit' data-pl='"+esc(x.pk)+"'>"+esc(x.p)+"</button>"}).join('')+"</div>":"<div class='sub'>ตรวจครบทุกคัน 🎉</div>")+"</div>";
+ h+="<div class='card'><h2>ข้อความสรุป</h2><pre>"+esc(c.text)+"</pre><div style='display:flex;gap:8px;flex-wrap:wrap'><button class='btn s g' id='sumcopy'>คัดลอก</button><a class='btn s line' style='text-decoration:none' target='_blank' rel='noopener' href='https://line.me/R/msg/text/?"+encodeURIComponent(c.text)+"'>ส่งเข้า LINE</a><button class='btn s' id='sumsave'>บันทึกสรุปลงชีต</button></div></div>";
+ return h}
+function histView(){
+ var m=S.hm||'sum';
+ var h="<div class='hd'><div><h1>ประวัติ</h1><div class='sub'>บันทึกว่าคันไหนตรวจแล้ว ปัญหาที่เจอ และสรุป</div></div></div><div style='display:flex;gap:6px;margin-bottom:6px'><button class='btn s"+(m=='sum'?'':' g')+"' data-hm='sum'>สรุป</button><button class='btn s"+(m=='car'?'':' g')+"' data-hm='car'>รายคัน</button></div>";
+ return h+(m=='sum'?sumView():plate())}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var d=b.dataset;
+ if(d.hm!==undefined){S.hm=d.hm;render()}
+ else if(d.sp!==undefined){S.sp=d.sp;render()}
+ else if(b.id=='sumcopy'){var tx=sumCalc(S.sp||'day',S.su||'').text;try{navigator.clipboard.writeText(tx).then(function(){toast('คัดลอกสรุปแล้ว')},function(){toast('คัดลอกไม่ได้ กดค้างที่ข้อความเพื่อคัดลอก')})}catch(x){toast('คัดลอกไม่ได้ กดค้างที่ข้อความเพื่อคัดลอก')}}
+ else if(b.id=='sumsave'){var per=S.sp||'day',c=sumCalc(per,S.su||''),isG=!!(window.google&&google.script&&google.script.run);
+  if(!isG){toast('(ตัวอย่าง) เมื่อใช้งานจริงจะบันทึกลงแท็บ “สรุปประวัติ”');return}
+  b.disabled=true;google.script.run.withSuccessHandler(function(){b.disabled=false;toast('บันทึกสรุปลงชีต “สรุปประวัติ” แล้ว')}).withFailureHandler(function(e){b.disabled=false;toast((e&&e.message)||'บันทึกไม่สำเร็จ')}).apiSaveSummary({period:PN[per],label:c.rg.label,unit:S.su||'',checked:c.checked.length,total:c.fl.length,withProb:c.probs.length,probCount:c.pcount,top:c.top.join(', '),missing:c.miss.map(function(x){return x.p}).join(', '),text:c.text})}
+});
+document.addEventListener('change',function(e){if(e.target.id=='sunit'){S.su=e.target.value;render()}});
+
+load();
+</script>
+</body>
+</html>
